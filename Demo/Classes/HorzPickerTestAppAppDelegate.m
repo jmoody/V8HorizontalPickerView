@@ -41,10 +41,5 @@
 #pragma mark - Memory management
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application { }
 
-- (void)dealloc {
-	[window   release];
-	[testView release];
-	[super dealloc];
-}
 
 @end
