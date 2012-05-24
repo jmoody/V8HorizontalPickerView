@@ -15,14 +15,6 @@ typedef enum {
 } V8HorizontalPickerIndicatorPosition;
 
 
-// sub-class of UILabel that knows how to change it's state
-@interface V8HorizontalPickerLabel : UILabel <V8HorizontalPickerElementState> { }
-
-@property (nonatomic, assign) BOOL selectedElement;
-@property (nonatomic, strong) UIColor *selectedStateColor;
-@property (nonatomic, strong) UIColor *normalStateColor;
-
-@end
 
 @interface V8HorizontalPickerView : UIView <UIScrollViewDelegate> { }
 

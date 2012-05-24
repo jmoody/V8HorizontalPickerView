@@ -13,7 +13,7 @@
 
 @required
 // element views should know how display themselves based on selected status
-- (void) setSelectedElement:(BOOL)selected;
+- (void) setSelectedState:(BOOL) aSelected;
 @end
 
 // ------------------------------------------------------------------
@@ -46,7 +46,7 @@
              titleForElementAtIndex:(NSInteger) aIndex;
 
 - (UIView <V8HorizontalPickerElementState> *)  horizontalPickerView:(V8HorizontalPickerView *) aPicker 
-                                             viewForElementAtIndex:(NSInteger) aIndex;
+                                              viewForElementAtIndex:(NSInteger) aIndex;
 
 
 
