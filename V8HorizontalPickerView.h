@@ -15,6 +15,14 @@ typedef enum {
 } V8HorizontalPickerIndicatorPosition;
 
 
+// sub-class of UILabel that knows how to change it's state
+@interface V8HorizontalPickerLabel : UILabel <V8HorizontalPickerElementState> { }
+
+@property (nonatomic, assign) BOOL selectedElement;
+@property (nonatomic, strong) UIColor *selectedStateColor;
+@property (nonatomic, strong) UIColor *normalStateColor;
+
+@end
 
 @interface V8HorizontalPickerView : UIView <UIScrollViewDelegate> { }
 
@@ -22,45 +30,37 @@ typedef enum {
 @property (nonatomic, unsafe_unretained) id <V8HorizontalPickerViewDataSource> dataSource;
 @property (nonatomic, unsafe_unretained) id <V8HorizontalPickerViewDelegate> delegate;
 
-@property (nonatomic, readonly) NSInteger numberOfElements;
-@property (nonatomic, readonly) NSInteger currentSelectedIndex;
+@property (nonatomic, readonly) NSUInteger numberOfElements;
+@property (nonatomic, readonly) NSUInteger currentSelectedIndex;
 
 // what font to use for the element labels?
 @property (nonatomic) UIFont *elementFont;
 
 // color of labels used in picker
-@property (nonatomic) UIColor *textColor;
-@property (nonatomic) UIColor *selectedTextColor; // color of current selected element
+@property (nonatomic, strong) UIColor *textColor;
+@property (nonatomic, strong) UIColor *selectedTextColor; // color of current selected element
 
 // the point, defaults to center of view, where the selected element sits
 @property (nonatomic, assign) CGPoint selectionPoint;
-@property (nonatomic) UIView *selectionIndicatorView;
+@property (nonatomic, strong) UIView *selectionIndicatorView;
 
 @property (nonatomic, assign) V8HorizontalPickerIndicatorPosition indicatorPosition;
 
 // views to display on edges of picker (eg: gradients, etc)
-@property (nonatomic) UIView *leftEdgeView;
-@property (nonatomic) UIView *rightEdgeView;
+@property (nonatomic, strong) UIView *leftEdgeView;
+@property (nonatomic, strong) UIView *rightEdgeView;
 
 // views for left and right of scrolling area
-@property (nonatomic) UIView *leftScrollEdgeView;
-@property (nonatomic) UIView *rightScrollEdgeView;
+@property (nonatomic, strong) UIView *leftScrollEdgeView;
+@property (nonatomic, strong) UIView *rightScrollEdgeView;
 
 // padding for left/right scroll edge views
 @property (nonatomic, assign) CGFloat scrollEdgeViewPadding;
 
 
-- (void)reloadData;
-- (void)scrollToElement:(NSInteger)index animated:(BOOL)animate;
+- (void) reloadData;
+- (void) scrollToElement:(NSUInteger) aIndex animated:(BOOL) animate;
 
 @end
 
 
-// sub-class of UILabel that knows how to change it's state
-@interface V8HorizontalPickerLabel : UILabel <V8HorizontalPickerElementState> { }
-
-@property (nonatomic, assign) BOOL selectedElement;
-@property (nonatomic) UIColor *selectedStateColor;
-@property (nonatomic) UIColor *normalStateColor;
-
-@end

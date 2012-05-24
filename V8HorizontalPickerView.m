@@ -10,36 +10,36 @@
 
 #pragma mark - Internal Method Interface
 @interface V8HorizontalPickerView ()
-- (void)collectData;
+- (void) collectData;
 
-- (void)getNumberOfElementsFromDataSource;
-- (void)getElementWidthsFromDelegate;
-- (void)setTotalWidthOfScrollContent;
-- (void)updateScrollContentInset;
+- (void) getNumberOfElementsFromDataSource;
+- (void) getElementWidthsFromDelegate;
+- (void) setTotalWidthOfScrollContent;
+- (void) updateScrollContentInset;
 
-- (void)addScrollView;
-- (void)drawPositionIndicator;
-- (V8HorizontalPickerLabel *)labelForForElementAtIndex:(NSInteger)index withTitle:(NSString *)title;
-- (CGRect)frameForElementAtIndex:(NSInteger)index;
+- (void) addScrollView;
+- (void) drawPositionIndicator;
+- (V8HorizontalPickerLabel *) labelForForElementAtIndex:(NSUInteger) aIndex withTitle:(NSString *) aTitle;
+- (CGRect) frameForElementAtIndex:(NSUInteger) aIndex;
 
-- (CGRect)frameForLeftScrollEdgeView;
-- (CGRect)frameForRightScrollEdgeView;
-- (CGFloat)leftScrollEdgeWidth;
-- (CGFloat)rightScrollEdgeWidth;
+- (CGRect) frameForLeftScrollEdgeView;
+- (CGRect) frameForRightScrollEdgeView;
+- (CGFloat) leftScrollEdgeWidth;
+- (CGFloat) rightScrollEdgeWidth;
 
-- (CGPoint)currentCenter;
-- (void)scrollToElementNearestToCenter;
-- (NSInteger)nearestElementToCenter;
-- (NSInteger)nearestElementToPoint:(CGPoint)point;
-- (NSInteger)elementContainingPoint:(CGPoint)point;
+- (CGPoint) currentCenter;
+- (void) scrollToElementNearestToCenter;
+- (NSUInteger) nearestElementToCenter;
+- (NSUInteger) nearestElementToPoint:(CGPoint)point;
+- (NSUInteger) elementContainingPoint:(CGPoint)point;
 
-- (NSInteger)offsetForElementAtIndex:(NSInteger)index;
-- (NSInteger)centerOfElementAtIndex:(NSInteger)index;
+- (NSUInteger)offsetForElementAtIndex:(NSUInteger)index;
+- (NSUInteger)centerOfElementAtIndex:(NSUInteger)index;
 
 - (void)scrollViewTapped:(UITapGestureRecognizer *)recognizer;
 
-- (NSInteger)tagForElementAtIndex:(NSInteger)index;
-- (NSInteger)indexForElement:(UIView *)element;
+- (NSUInteger)tagForElementAtIndex:(NSUInteger)index;
+- (NSUInteger)indexForElement:(UIView *)element;
 @end
 
 
@@ -59,7 +59,7 @@ UIScrollView *_scrollView;
 // collection of widths of each element.
 NSMutableArray *elementWidths;
 
-NSInteger elementPadding;
+NSUInteger elementPadding;
 
 // state keepers
 BOOL dataHasBeenLoaded;
@@ -349,7 +349,7 @@ int lastVisibleElement;
 
 
 #pragma mark - Scroll To Element Method
-- (void)scrollToElement:(NSInteger)index animated:(BOOL)animate {
+- (void)scrollToElement:(NSUInteger)index animated:(BOOL)animate {
 	currentSelectedIndex = index;
 	int x = [self centerOfElementAtIndex:index] - selectionPoint.x;
 	[_scrollView setContentOffset:CGPointMake(x, 0) animated:animate];
@@ -455,7 +455,7 @@ int lastVisibleElement;
 }
 
 // create a UILabel for this element.
-- (V8HorizontalPickerLabel *)labelForForElementAtIndex:(NSInteger)index withTitle:(NSString *)title {
+- (V8HorizontalPickerLabel *)labelForForElementAtIndex:(NSUInteger)index withTitle:(NSString *)title {
 	CGRect labelFrame     = [self frameForElementAtIndex:index];
 	V8HorizontalPickerLabel *elementLabel = [[V8HorizontalPickerLabel alloc] initWithFrame:labelFrame];
 
@@ -492,7 +492,7 @@ int lastVisibleElement;
 	[elementWidths removeAllObjects];
 	for (int i = 0; i < numberOfElements; i++) {
 		if (self.delegate && [self.delegate respondsToSelector:delegateCall]) {
-			NSInteger width = [self.delegate horizontalPickerView:self widthForElementAtIndex:i];
+			CGFloat width = [self.delegate horizontalPickerView:self widthForElementAtIndex:i];
 			[elementWidths addObject:[NSNumber numberWithInteger:width]];
 		}
 	}
@@ -502,7 +502,7 @@ int lastVisibleElement;
 #pragma mark - View Calculation and Manipulation Methods (Internal Methods)
 // what is the total width of the content area?
 - (void)setTotalWidthOfScrollContent {
-	NSInteger totalWidth = 0;
+	NSUInteger totalWidth = 0;
 
 	totalWidth += [self leftScrollEdgeWidth];
 	totalWidth += [self rightScrollEdgeWidth];
@@ -557,8 +557,8 @@ int lastVisibleElement;
 }
 
 // what is the left-most edge of the element at the given index?
-- (NSInteger)offsetForElementAtIndex:(NSInteger)index {
-	NSInteger offset = 0;
+- (NSUInteger)offsetForElementAtIndex:(NSUInteger)index {
+	NSUInteger offset = 0;
 	if (index >= [elementWidths count]) {
 		return 0;
 	}
@@ -573,28 +573,28 @@ int lastVisibleElement;
 }
 
 // return the tag for an element at a given index
-- (NSInteger)tagForElementAtIndex:(NSInteger)index {
+- (NSUInteger)tagForElementAtIndex:(NSUInteger)index {
 	return (index + 1) * 10;
 }
 
 // return the index given an element's tag
-- (NSInteger)indexForElement:(UIView *)element {
+- (NSUInteger)indexForElement:(UIView *)element {
 	return (element.tag / 10) - 1;
 }
 
-// what is the center of the element at the given index?
-- (NSInteger)centerOfElementAtIndex:(NSInteger)index {
+// what is the center of the element at the given index? 
+- (NSUInteger)centerOfElementAtIndex:(NSUInteger)index {
 	if (index >= [elementWidths count]) {
 		return 0;
 	}
 
-	NSInteger elementOffset = [self offsetForElementAtIndex:index];
-	NSInteger elementWidth  = [[elementWidths objectAtIndex:index] intValue] / 2;
+	NSUInteger elementOffset = [self offsetForElementAtIndex:index];
+	NSUInteger elementWidth  = [[elementWidths objectAtIndex:index] intValue] / 2;
 	return elementOffset + elementWidth;
 }
 
 // what is the frame for the element at the given index?
-- (CGRect)frameForElementAtIndex:(NSInteger)index {
+- (CGRect)frameForElementAtIndex:(NSUInteger)index {
 	CGFloat width = 0.0f;
 	if ([elementWidths count] > index) {
 		width = [[elementWidths objectAtIndex:index] intValue];
@@ -655,12 +655,12 @@ int lastVisibleElement;
 }
 
 // what is the element nearest to the center of the view?
-- (NSInteger)nearestElementToCenter {
+- (NSUInteger)nearestElementToCenter {
 	return [self nearestElementToPoint:[self currentCenter]];
 }
 
 // what is the element nearest to the given point?
-- (NSInteger)nearestElementToPoint:(CGPoint)point {
+- (NSUInteger)nearestElementToPoint:(CGPoint)point {
 	for (int i = 0; i < numberOfElements; i++) {
 		CGRect frame = [self frameForElementAtIndex:i];
 		if (CGRectContainsPoint(frame, point)) {
@@ -685,7 +685,7 @@ int lastVisibleElement;
 }
 
 // similar to nearestElementToPoint: however, this method does not look past beginning/end
-- (NSInteger)elementContainingPoint:(CGPoint)point {
+- (NSUInteger)elementContainingPoint:(CGPoint)point {
 	for (int i = 0; i < numberOfElements; i++) {
 		CGRect frame = [self frameForElementAtIndex:i];
 		if (CGRectContainsPoint(frame, point)) {
@@ -706,7 +706,7 @@ int lastVisibleElement;
 - (void)scrollViewTapped:(UITapGestureRecognizer *)recognizer {
 	if (recognizer.state == UIGestureRecognizerStateRecognized) {
 		CGPoint tapLocation    = [recognizer locationInView:_scrollView];
-		NSInteger elementIndex = [self elementContainingPoint:tapLocation];
+		NSUInteger elementIndex = [self elementContainingPoint:tapLocation];
 		if (elementIndex != -1) { // point not in element
 			[self scrollToElement:elementIndex animated:YES];
 		}
