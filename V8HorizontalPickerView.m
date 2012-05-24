@@ -77,10 +77,6 @@
 
 @property (nonatomic, assign) NSInteger currentSelectedIndex_Internal;
 
-//- (void) collectData;
-
-//- (NSUInteger) askDataSourceForNumberOfElements;
-//- (NSArray *) askDelegateForElementWidths;
 
 - (void) setTotalWidthOfScrollContent;
 - (void) updateScrollContentInset;
@@ -135,7 +131,7 @@
 #pragma mark - Init/Dealloc
 - (id) initWithFrame:(CGRect) frame {
 	self = [super initWithFrame:frame];
-  if ((self = [super initWithFrame:frame])) {
+  if (self) {
 		self.scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
     [self configureScrollView];
     [self addSubview:self.scrollView];
@@ -204,11 +200,7 @@
 	[super layoutSubviews];
   BOOL adjustWhenFinished = NO;
 
-//	if (self.dataHasBeenLoaded == NO) {
-//		[self collectData];
-//	}
-  
-  if (self.scrollSizeHasBeenSet = NO) {
+  if (self.scrollSizeHasBeenSet == NO) {
 		adjustWhenFinished = YES;
 		[self updateScrollContentInset];
 		[self setTotalWidthOfScrollContent];
@@ -313,19 +305,6 @@
 
 
 #pragma mark - Getters and Setters
-//- (void) setDelegate:(id) aDelegate {
-//	if (delegate != aDelegate) {
-//		delegate = aDelegate;
-//		[self setNeedsLayout]; //collectData];
-//	}
-//}
-//
-//- (void) setDataSource:(id) aDataSource {
-//	if (dataSource != aDataSource) {
-//		dataSource = aDataSource;
-//		[self setNeedsLayout]; //[self collectData];
-//	}
-//}
 
 - (void) setSelectionPoint:(CGPoint) aPoint {
 	if (!CGPointEqualToPoint(aPoint, self.selectionPoint)) {
@@ -440,15 +419,6 @@
 	[self updateScrollContentInset];
   [self setNeedsLayout];
 }
-
-//- (void)collectData {
-//  
-////	self.dataHasBeenLoaded    = NO;
-//
-//	//self.elementWidths = [self askDelegateForElementWidths];
-//
-////	self.dataHasBeenLoaded = YES;
-//}
 
 
 #pragma mark - Scroll To Element Method
