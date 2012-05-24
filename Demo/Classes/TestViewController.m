@@ -1,4 +1,4 @@
-    //
+//
 //  TestViewController.m
 //  fStats
 //
@@ -215,7 +215,7 @@ int indexCount;
 	return [titleArray objectAtIndex:index];
 }
 
-- (NSInteger) horizontalPickerView:(V8HorizontalPickerView *)picker widthForElementAtIndex:(NSInteger)index {
+- (CGFloat) horizontalPickerView:(V8HorizontalPickerView *)picker widthForElementAtIndex:(NSInteger)index {
 	CGSize constrainedSize = CGSizeMake(MAXFLOAT, MAXFLOAT);
 	NSString *text = [titleArray objectAtIndex:index];
 	CGSize textSize = [text sizeWithFont:[UIFont boldSystemFontOfSize:14.0f]
