@@ -18,4 +18,5 @@
 @property (nonatomic) UIButton *reloadButton;
 @property (nonatomic) UILabel *infoLabel;
 
+
 @end

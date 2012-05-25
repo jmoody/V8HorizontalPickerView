@@ -23,8 +23,8 @@ typedef enum {
 @interface V8HorizontalPickerView : UIView <UIScrollViewDelegate> { }
 
 // delegate and datasources to feed scroll view. this view only maintains a weak reference to these
-@property (nonatomic, unsafe_unretained) id <V8HorizontalPickerViewDataSource> dataSource;
-@property (nonatomic, unsafe_unretained) id <V8HorizontalPickerViewDelegate> delegate;
+@property (nonatomic, weak) id <V8HorizontalPickerViewDataSource> dataSource;
+@property (nonatomic, weak) id <V8HorizontalPickerViewDelegate> delegate;
 
 @property (nonatomic, readonly) NSUInteger numberOfElements;
 @property (nonatomic, readonly) NSUInteger currentSelectedIndex;
@@ -47,6 +47,11 @@ typedef enum {
 @property (nonatomic, strong) UIView *rightScrollEdgeView;
 
 // padding for left/right scroll edge views
+// controls the distance between the scroll edge views and the left/right most
+//           
+//   image |----| < elements > |----| image
+//  
+// if there are not images, then the property has no effect
 @property (nonatomic, assign) CGFloat scrollEdgeViewPadding;
 
 

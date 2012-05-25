@@ -7,6 +7,124 @@
 //
 
 #import "TestViewController.h"
+#import <QuartzCore/QuartzCore.h>
+
+@interface TestElementView : UIView <V8HorizontalPickerElementView>
+
+@property (nonatomic, strong) UILabel *label;
+
+- (id) initWithFrame:(CGRect) aFrame 
+               title:(NSString *) aTitle 
+        needsLeftBar:(BOOL) aNeedsLeftBar;
+     
+- (CGFloat) width;
+
+@end
+
+@implementation TestElementView
+
+@synthesize label;
+
+- (id) initWithFrame:(CGRect) aFrame 
+               title:(NSString *) aTitle 
+        needsLeftBar:(BOOL) aNeedsLeftBar {
+  self = [super initWithFrame:aFrame];
+  if (self) {  
+
+    CGSize size = [aTitle sizeWithFont:[UIFont systemFontOfSize:18]];
+    self.frame = CGRectMake(aFrame.origin.x, aFrame.origin.y, size.width + 20, aFrame.size.height);
+    CGFloat x = (size.width + 20)/2 - (size.width/2);
+    CGFloat y = (aFrame.size.height/2) - (size.height/2);
+    CGRect frame = CGRectMake(x, y, size.width, size.height);
+    self.label = [[UILabel alloc] initWithFrame:frame];
+    self.label.text = aTitle;
+    self.label.textAlignment = UITextAlignmentCenter;
+    self.label.textColor = [UIColor blueColor];
+    self.label.highlightedTextColor = [UIColor orangeColor];
+    self.label.font = [UIFont systemFontOfSize:18];
+    self.label.highlighted = NO;
+    self.label.backgroundColor = [UIColor clearColor];
+    [self addSubview:self.label];
+    
+    if (aNeedsLeftBar == YES) {
+      UIView *left = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 4, aFrame.size.height)];
+      left.backgroundColor = [UIColor blueColor];
+      [self addSubview:left];
+    }
+    
+    UIView *right = [[UIView alloc] initWithFrame:CGRectMake(size.width + 16, 0, 4, aFrame.size.height)];
+    right.backgroundColor = [UIColor blueColor];
+    [self addSubview:right];
+    
+  }
+  return self;
+}
+
+- (void) setSelectedState:(BOOL)aSelected {
+  self.label.highlighted = aSelected;
+}
+
+- (CGFloat) width {
+  return self.frame.size.width;
+}
+
+@end
+
+@interface TestElementPickerDelegate : NSObject 
+<V8HorizontalPickerViewDataSource, V8HorizontalPickerViewDelegate>
+
+@property (nonatomic, strong) NSArray *titleArray;
+@property (nonatomic, strong) NSArray *views;
+@end
+
+@implementation TestElementPickerDelegate
+
+@synthesize titleArray;
+@synthesize views;
+
+- (id) init {
+  self = [super init];
+  if (self) {
+    self.titleArray = [NSArray arrayWithObjects:@"All", @"Today", @"Thursday", @"Wednesday", @"Tuesday", @"Monday", nil];
+    __block NSUInteger count = [self.titleArray count];
+    __block NSMutableArray *marray = [NSMutableArray arrayWithCapacity:count];
+    [self.titleArray enumerateObjectsUsingBlock:^(NSString *title, NSUInteger idx, BOOL *stop) {
+      CGRect frame = CGRectMake(2, 2, -1, 50);
+      BOOL needsLeft = idx == 0;
+      TestElementView *view = [[TestElementView alloc] initWithFrame:frame
+                                                               title:title
+                                                        needsLeftBar:needsLeft];
+                                                       
+      
+      [marray addObject:view];
+    }];
+    self.views = [NSArray arrayWithArray:marray];
+  }
+  return self;
+}
+
+- (NSUInteger) numberOfElementsInPickerView:(V8HorizontalPickerView *)aPicker {
+  return [self.titleArray count];
+}
+
+
+
+- (CGFloat) pickerView:(V8HorizontalPickerView *)picker widthForIndex:(NSUInteger) aIndex {
+  TestElementView *view = (TestElementView *)[self.views objectAtIndex:aIndex];
+  return [view width];
+}
+
+- (UIView <V8HorizontalPickerElementView> *) pickerView:(V8HorizontalPickerView *)aPicker 
+                                          viewForIndex:(NSUInteger)aIndex {
+  return [self.views objectAtIndex:aIndex];
+}
+
+@end
+
+@interface TestViewController ()
+// required because we need to retain this delegate (in ARC there is explicit retaining)
+@property (nonatomic, strong) TestElementPickerDelegate *tepd;
+@end
 
 
 @implementation TestViewController
@@ -14,6 +132,7 @@
 @synthesize pickerView;
 @synthesize nextButton, reloadButton;
 @synthesize infoLabel;
+@synthesize tepd;
 
 #pragma mark - iVars
 NSMutableArray *titleArray;
@@ -58,19 +177,16 @@ int indexCount;
   [pickerView setTitleColor:[UIColor greenColor] forSelectionState:V8HorizontalPickerSelectionStateUnselected];
 
 	pickerView.backgroundColor   = [UIColor darkGrayColor];
-  
-   
 	pickerView.delegate    = self;
 	pickerView.dataSource  = self;
-	pickerView.elementFont = [UIFont boldSystemFontOfSize:14.0f];
+	pickerView.elementFont = [UIFont boldSystemFontOfSize:16.0f];
 	pickerView.selectionX = 120;
-
 	// add carat or other view to indicate selected element
 	UIImageView *indicator = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
 	pickerView.selectionIndicatorView = indicator;
   pickerView.leftEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"left_fade"]];
   pickerView.rightEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"right_fade"]];
-
+	[self.view addSubview:pickerView];
   
   
   tmpFrame = CGRectMake(0, 0, 320, 50);
@@ -79,29 +195,30 @@ int indexCount;
 	pv.delegate    = self;
 	pv.dataSource  = self;
 	pv.elementFont = [UIFont boldSystemFontOfSize:16.0f];
-//  pv.selectionPoint = CGPointMake(60, 0);
-  [self.view addSubview:pv];
-  
+
   indicator = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
 	pv.selectionIndicatorView = indicator;
   pv.indicatorPosition = V8HorizontalPickerIndicatorBottom;
   pv.selectionX = 180;
-//  [pv setTitleColor:[UIColor blueColor] forSelectionState:V8HorizontalPickerSelectionStateSelected];
-//  [pv setTitleColor:[UIColor greenColor] forSelectionState:V8HorizontalPickerSelectionStateUnselected];
-
-  
-//	pickerView.indicatorPosition = V8HorizontalPickerIndicatorTop; // specify indicator's location
-
-	// add gradient images to left and right of view if desired
-
-	// add image to left of scroll area
-  
   pv.leftScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
   pv.rightScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
+  [self.view addSubview:pv];
   
-
-	[self.view addSubview:pickerView];
-
+  tmpFrame = CGRectMake(0, 60, 320, 54);
+  V8HorizontalPickerView *pv2 = [[V8HorizontalPickerView alloc] initWithFrame:tmpFrame];
+  pv2.backgroundColor   = [UIColor lightGrayColor];
+  self.tepd = [[TestElementPickerDelegate alloc] init];
+	pv2.delegate    = tepd;
+	pv2.dataSource  = tepd;
+	pv2.selectionIndicatorView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
+  pv2.indicatorPosition = V8HorizontalPickerIndicatorBottom;
+  pv2.selectionX = 160;
+  pv2.scrollEdgeViewPadding = 80;
+  pv2.leftScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
+  pv2.rightScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
+  NSLog(@"selected index: %d", pv2.currentSelectedIndex);
+  [self.view addSubview:pv2];
+  
 	self.nextButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 	y = y + tmpFrame.size.height + spacing;
 	tmpFrame = CGRectMake(x, y, width, 50.0f);
@@ -205,21 +322,21 @@ int indexCount;
 }
 
 #pragma mark - HorizontalPickerView DataSource Methods
-- (NSInteger)numberOfElementsInPickerView:(V8HorizontalPickerView *)picker {
+- (NSUInteger) numberOfElementsInPickerView:(V8HorizontalPickerView *)picker {
 	return [titleArray count];
 }
 
 #pragma mark - HorizontalPickerView Delegate Methods
 - (NSString *) pickerView:(V8HorizontalPickerView *)aPicker titleForIndex:(NSUInteger)aIndex {
-	return [titleArray objectAtIndex:aIndex];
+  return [titleArray objectAtIndex:aIndex];
 }
 
 - (CGFloat) pickerView:(V8HorizontalPickerView *)picker widthForIndex:(NSUInteger) aIndex {
 	CGSize constrainedSize = CGSizeMake(MAXFLOAT, MAXFLOAT);
 	NSString *text = [titleArray objectAtIndex:aIndex];
 	CGSize textSize = [text sizeWithFont:[UIFont boldSystemFontOfSize:16.0f]
-					   constrainedToSize:constrainedSize
-						   lineBreakMode:UILineBreakModeWordWrap];
+                     constrainedToSize:constrainedSize
+                         lineBreakMode:UILineBreakModeWordWrap];
 	return textSize.width + 40.0f; // 20px padding on each side
 }
 

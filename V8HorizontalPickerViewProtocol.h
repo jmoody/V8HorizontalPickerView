@@ -22,7 +22,7 @@
 
 @required
 // data source is responsible for reporting how many elements there are
-- (NSInteger) numberOfElementsInPickerView:(V8HorizontalPickerView *) aPicker;
+- (NSUInteger) numberOfElementsInPickerView:(V8HorizontalPickerView *) aPicker;
 @end
 
 
@@ -33,7 +33,7 @@
 
 @required
 // delegate is responsible for reporting the size of each element
-- (CGFloat) pickerView:(V8HorizontalPickerView *)picker 
+- (CGFloat) pickerView:(V8HorizontalPickerView *) aPicker 
          widthForIndex:(NSUInteger) aIndex;
 
 @optional

@@ -114,6 +114,11 @@
 @synthesize lastVisibleElement;
 @synthesize currentSelectedIndex_Internal;
 
+- (void) dealloc {
+  self.delegate = nil;
+  self.dataSource = nil;
+}
+
 #pragma mark - Init/Dealloc
 - (id) initWithFrame:(CGRect) frame {
 	self = [super initWithFrame:frame];
@@ -262,7 +267,8 @@
 					NSString *title = [self.delegate pickerView:self titleForIndex:index];
 					view = [self labelForForElementAtIndex:index withTitle:title];
 				} else if (self.delegate && [self.delegate respondsToSelector:viewForElementSelector]) {
-					view = [self.delegate pickerView:self viewForIndex:index];
+          view = [self.delegate pickerView:self viewForIndex:index];
+          [view setFrame:[self frameForElementAtIndex:index]];
 				}
 
 				if (view != nil) {
@@ -663,7 +669,16 @@
 	if ([self.elementWidths count] > aIndex) {
 		width = [[self.elementWidths objectAtIndex:aIndex] doubleValue];
 	}
-	return CGRectMake([self offsetForElementAtIndex:aIndex], 0.0, width, self.frame.size.height);
+  
+  CGFloat height = self.frame.size.height;
+  CGFloat y = 0;
+  if (self.delegate && [self.delegate respondsToSelector:@selector(pickerView:viewForIndex:)]) {
+    UIView *view = [self.delegate pickerView:self viewForIndex:aIndex];
+    height = view.frame.size.height;
+    y = view.frame.origin.y;
+  }
+  
+	return CGRectMake([self offsetForElementAtIndex:aIndex], y, width, height);
 }
 
 // what is the frame for the left scroll edge view?
