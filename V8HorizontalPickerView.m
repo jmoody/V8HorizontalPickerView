@@ -38,10 +38,8 @@
 
 // collection of widths of each element.
 @property (nonatomic, strong) NSArray *elementWidths;
-@property (nonatomic, assign) CGFloat elementPadding;
 
 // state keepers
-@property (nonatomic, assign) BOOL dataHasBeenLoaded;
 @property (nonatomic, assign) BOOL scrollSizeHasBeenSet;
 @property (nonatomic, assign) BOOL scrollingBasedOnUserInteraction;
 
@@ -57,7 +55,8 @@
 @property (nonatomic, strong) UIColor *selectedTextColor;
 
 
-- (void) setTotalWidthOfScrollContent;
+
+- (void) updateWidthOfScrollContent;
 - (void) updateScrollContentInset;
 
 - (void) configureScrollView;
@@ -73,9 +72,9 @@
 
 - (CGPoint) currentCenter;
 - (void) scrollToElementNearestToCenter;
-- (NSUInteger) nearestElementToCenter;
+- (NSUInteger) indexOfElementNearestToCenter;
 - (NSUInteger) indexOfNearestElementToPoint:(CGPoint) point;
-- (NSUInteger) elementContainingPoint:(CGPoint) point;
+- (NSUInteger) indexOfElementContainingPoint:(CGPoint) point;
 
 - (CGFloat) offsetForElementAtIndex:(NSUInteger) index;
 - (CGFloat) centerOfElementAtIndex:(NSUInteger) index;
@@ -106,8 +105,6 @@
 
 @synthesize scrollView;
 @synthesize elementWidths = _elementWidths;
-@synthesize elementPadding;
-@synthesize dataHasBeenLoaded;
 @synthesize scrollSizeHasBeenSet;
 @synthesize scrollingBasedOnUserInteraction;
 @synthesize firstVisibleElement;
@@ -131,7 +128,6 @@
 		// nothing is selected yet
 		self.currentSelectedIndex_Internal = -1; 
 		
-    self.elementPadding       = 0;
 		self.scrollSizeHasBeenSet = NO;
 		self.scrollingBasedOnUserInteraction = NO;
 
@@ -139,8 +135,11 @@
 		_selectionX = frame.size.width/2;
 		self.indicatorPosition = V8HorizontalPickerIndicatorBottom;
     
-		self.firstVisibleElement = -1;
-		self.lastVisibleElement  = -1;
+//    self.firstVisibleElement = -1;
+//		self.lastVisibleElement  = -1;
+
+    self.firstVisibleElement = NSIntegerMax;
+    self.lastVisibleElement  = NSIntegerMin;
 
 		_scrollEdgeViewPadding = 0.0;
 		self.autoresizesSubviews = YES;
@@ -218,7 +217,7 @@
   if (self.scrollSizeHasBeenSet == NO) {
 		adjustWhenFinished = YES;
 		[self updateScrollContentInset];
-		[self setTotalWidthOfScrollContent];
+		[self updateWidthOfScrollContent];
   }
 
 	SEL titleForElementSelector = @selector(pickerView:titleForIndex:);
@@ -228,30 +227,19 @@
 	CGRect scaledViewFrame = CGRectZero;
 
 	// remove any subviews that are no longer visible
-	for (UIView<V8HorizontalPickerElementView> *view in [self.scrollView subviews]) {
+	for (UIView *view in [self.scrollView subviews]) {
 		scaledViewFrame = [self.scrollView convertRect:[view frame] toView:self];
 
 		// if the view doesn't intersect, it's not visible, so we can recycle it
 		if (!CGRectIntersectsRect(scaledViewFrame, visibleBounds)) {
 			[view removeFromSuperview];
 		} else { 
-      // there is a bug here.  
-      // for delegates that implement pickerView:viewForIndex, 
-      // scrollToIndex:animate: do does not update the selected status
-      //
-      // it works for delegates that implement pickerView:titleForIndex
-      // because when those views are generated, their selected state set
-      // 
-      // the work around is to set the view's selected state
-      BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
-      if (isSelected == YES) {
-        // if this view is set to be selected, make sure it is over the selection point
-        NSUInteger currentIndex = [self nearestElementToCenter];
-        isSelected = (currentIndex == self.currentSelectedIndex_Internal);
-      }
-      // could be a left or right scroll view image
       if ([view conformsToProtocol:@protocol(V8HorizontalPickerElementView)]) {
-        [view setSelectedState:isSelected];
+        UIView<V8HorizontalPickerElementView> *elmView;
+        elmView =  (UIView<V8HorizontalPickerElementView> *) view;
+        BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
+        BOOL isOverSelectionPoint = ([self indexOfElementNearestToCenter] == self.currentSelectedIndex_Internal);
+        [elmView setSelectedState:(isSelected && isOverSelectionPoint)];
       }
     }
 	}
@@ -276,11 +264,18 @@
           view = [self.delegate pickerView:self viewForIndex:index];
           [view setFrame:[self frameForElementAtIndex:index]];
 				}
-
+        
 				if (view != nil) {
 					// use the index as the tag so we can find it later
 					view.tag = [self tagForElementAtIndex:index];
 					[self.scrollView addSubview:view];
+          if ([view conformsToProtocol:@protocol(V8HorizontalPickerElementView)]) {
+            UIView<V8HorizontalPickerElementView> *elmView;
+            elmView =  (UIView<V8HorizontalPickerElementView> *) view;
+            BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
+            BOOL isOverSelectionPoint = ([self indexOfElementNearestToCenter] == self.currentSelectedIndex_Internal);
+            [elmView setSelectedState:(isSelected && isOverSelectionPoint)];
+          }
 				}
 			}
 		}
@@ -319,7 +314,7 @@
      [self scrollToIndex:self.currentSelectedIndex_Internal animated:NO];
 		} else if (self.numberOfElements <= self.currentSelectedIndex_Internal) {
 			// if currentSelectedIndex no longer exists, select what is currently centered
-			self.currentSelectedIndex_Internal = [self nearestElementToCenter];
+			self.currentSelectedIndex_Internal = [self indexOfElementNearestToCenter];
 			[self scrollToIndex:self.currentSelectedIndex_Internal animated:NO];
 		}
 	}
@@ -447,7 +442,7 @@
 	self.lastVisibleElement  = NSIntegerMin;
   
   self.scrollSizeHasBeenSet = NO;
-  [self setTotalWidthOfScrollContent];
+  [self updateWidthOfScrollContent];
 	[self updateScrollContentInset];
   [self setNeedsLayout];
 }
@@ -457,6 +452,13 @@
 
 
 - (void) scrollToIndex:(NSUInteger) aIndex animated:(BOOL) aAnimate {
+  if (self.scrollSizeHasBeenSet == NO) {
+    self.scrollSizeHasBeenSet = NO;
+    [self updateWidthOfScrollContent];
+    [self updateScrollContentInset];
+    [self setNeedsLayout];
+  }
+  
 	self.currentSelectedIndex_Internal = aIndex;
 	CGFloat x = [self centerOfElementAtIndex:aIndex] - self.selectionX;
 	[self.scrollView setContentOffset:CGPointMake(x, 0) animated:aAnimate];
@@ -466,10 +468,6 @@
 	if (self.delegate && [self.delegate respondsToSelector:delegateCall]) {
 		[self.delegate pickerView:self didSelectIndex:aIndex];
 	}
-  
-  if (self.delegate && [self.delegate respondsToSelector:@selector(pickerView:viewForIndex:)]) {
-
-  }
   
   [self setNeedsLayout];
 }
@@ -483,7 +481,7 @@
 		//		 cases so that the view state is properly preserved.
 
 		// set the current item under the center to "highlighted" or current
-		self.currentSelectedIndex_Internal = [self nearestElementToCenter];
+		self.currentSelectedIndex_Internal = [self indexOfElementNearestToCenter];
 	}
 	[self setNeedsLayout];
 }
@@ -521,7 +519,7 @@
   self.scrollView.bouncesZoom  = NO;
   self.scrollView.alwaysBounceHorizontal = YES;
   self.scrollView.alwaysBounceVertical   = NO;
-  // setting min/max the same disables zooming
+  // setting min/max the scale to 1.0 disables zooming
   self.scrollView.minimumZoomScale = 1.0; 
   self.scrollView.maximumZoomScale = 1.0;
   self.scrollView.contentInset = UIEdgeInsetsZero;
@@ -571,21 +569,13 @@
 
   elementLabel.textColor = self.textColor;
   elementLabel.highlightedTextColor = self.selectedTextColor;
-
-  // not fair to do this here - will not work with custom views
-  // show selected status if this element is the selected one and is currently over 
-  // selectionX
-  NSUInteger currentIndex = [self nearestElementToCenter];
-	BOOL isSelected = (self.currentSelectedIndex_Internal == aIndex) && 
-  (currentIndex == self.currentSelectedIndex_Internal);
-  [elementLabel setSelectedState:isSelected];
 	return elementLabel;
 }
 
 
 #pragma mark - View Calculation and Manipulation Methods (Internal Methods)
 // what is the total width of the content area?
-- (void) setTotalWidthOfScrollContent {
+- (void) updateWidthOfScrollContent {
 	NSUInteger totalWidth = 0;
 
 	totalWidth += [self leftScrollEdgeWidth];
@@ -594,11 +584,8 @@
 	// sum the width of all elements
 	for (NSNumber *width in self.elementWidths) {
 		totalWidth += [width intValue];
-		totalWidth += self.elementPadding;
 	}
-	// TODO: is this necessary?
-	totalWidth -= self.elementPadding; // we add "one too many" in for loop
-
+	
 	if (self.scrollView) {
 		// create our scroll view as wide as all the elements to be included
 		self.scrollView.contentSize = CGSizeMake(totalWidth, self.bounds.size.height);
@@ -651,7 +638,6 @@
 
 	for (int i = 0; i < aIndex && i < [self.elementWidths count]; i++) {
 		offset += [[self.elementWidths objectAtIndex:i] intValue];
-		offset += self.elementPadding;
 	}
 	return offset;
 }
@@ -752,7 +738,7 @@
 }
 
 // what is the element nearest to the center of the view?
-- (NSUInteger) nearestElementToCenter {
+- (NSUInteger) indexOfElementNearestToCenter {
 	return [self indexOfNearestElementToPoint:[self currentCenter]];
 }
 
@@ -782,7 +768,7 @@
 }
 
 // similar to nearestElementToPoint: however, this method does not look past beginning/end
-- (NSUInteger) elementContainingPoint:(CGPoint) aPoint {
+- (NSUInteger) indexOfElementContainingPoint:(CGPoint) aPoint {
 	for (NSUInteger index = 0; index < self.numberOfElements; index++) {
 		CGRect frame = [self frameForElementAtIndex:index];
 		if (CGRectContainsPoint(frame, aPoint)) {
@@ -794,7 +780,7 @@
 
 // move scroll view to position nearest element under the center
 - (void) scrollToElementNearestToCenter {
-	[self scrollToIndex:[self nearestElementToCenter] animated:YES];
+	[self scrollToIndex:[self indexOfElementNearestToCenter] animated:YES];
 }
 
 
@@ -803,7 +789,7 @@
 - (void) scrollViewTapped:(UITapGestureRecognizer *) aRecognizer {
 	if (aRecognizer.state == UIGestureRecognizerStateRecognized) {
 		CGPoint tapLocation    = [aRecognizer locationInView:self.scrollView];
-		NSUInteger elementIndex = [self elementContainingPoint:tapLocation];
+		NSUInteger elementIndex = [self indexOfElementContainingPoint:tapLocation];
 		if (elementIndex != NSNotFound) { // point not in element
 			[self scrollToIndex:elementIndex animated:YES];
 		}

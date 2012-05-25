@@ -194,7 +194,7 @@ int indexCount;
   pickerView.leftEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"left_fade"]];
   pickerView.rightEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"right_fade"]];
 	[self.view addSubview:pickerView];
-  [pickerView scrollToIndex:3 animated:NO];
+  [pickerView scrollToIndex:3 animated:YES];
   
   
   tmpFrame = CGRectMake(0, 0, 320, 50);
@@ -211,7 +211,7 @@ int indexCount;
   pv.leftScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
   pv.rightScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
   [self.view addSubview:pv];
-  [pv scrollToIndex:4 animated:NO];
+  [pv scrollToIndex:4 animated:YES];
   
   tmpFrame = CGRectMake(0, 60, 320, 54);
   self.pv2 = [[V8HorizontalPickerView alloc] initWithFrame:tmpFrame];
@@ -225,9 +225,10 @@ int indexCount;
   pv2.scrollEdgeViewPadding = 80;
   pv2.leftScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
   pv2.rightScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
-  NSLog(@"selected index: %d", pv2.selectedIndex);
+  
   [self.view addSubview:pv2];
-
+  [self.pv2 scrollToIndex:4 animated:YES];
+  
   UIButton *scrollButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 400, 80, 50)];
   [scrollButton setTitle:@"scroll pv2" forState:UIControlStateNormal];
   scrollButton.titleLabel.font = [UIFont systemFontOfSize:12];
@@ -276,10 +277,10 @@ int indexCount;
 	[super viewWillAppear:animated];
 //	[pickerView scrollToIndex:0 animated:NO];
 //[self.pv2 scrollToIndex:4 animated:YES];
-  [self.pv2 scrollToIndex:4 animated:NO];
-  [self.pv2 scrollToIndex:4 animated:NO];
+//  [self.pv2 scrollToIndex:4 animated:NO];
+//  [self.pv2 scrollToIndex:4 animated:NO];
   
-  NSLog(@"selected index: %d", pv2.selectedIndex);
+//  NSLog(@"selected index: %d", pv2.selectedIndex);
 }
 
 - (void) buttonTouchedScrollPv2:(id)sender {
