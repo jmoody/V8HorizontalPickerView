@@ -23,11 +23,11 @@ typedef enum {
 @interface V8HorizontalPickerView : UIView <UIScrollViewDelegate> { }
 
 // delegate and datasources to feed scroll view. this view only maintains a weak reference to these
-@property (nonatomic, weak) id <V8HorizontalPickerViewDataSource> dataSource;
-@property (nonatomic, weak) id <V8HorizontalPickerViewDelegate> delegate;
+@property (nonatomic, unsafe_unretained) id <V8HorizontalPickerViewDataSource> dataSource;
+@property (nonatomic, unsafe_unretained) id <V8HorizontalPickerViewDelegate> delegate;
 
 @property (nonatomic, readonly) NSUInteger numberOfElements;
-@property (nonatomic, readonly) NSUInteger currentSelectedIndex;
+@property (nonatomic, assign, readonly) NSUInteger selectedIndex;
 
 // what font to use for the element labels?
 @property (nonatomic) UIFont *elementFont;
@@ -56,7 +56,7 @@ typedef enum {
 
 
 - (void) reloadData;
-- (void) scrollToElement:(NSUInteger) aIndex animated:(BOOL) animate;
+- (void) scrollToIndex:(NSUInteger) aIndex animated:(BOOL) aAnimate;
 - (void) setTitleColor:(UIColor *) aColor forSelectionState:(V8HorizontalPickerSelectionState) aState;
 
 

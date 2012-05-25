@@ -92,7 +92,7 @@
 
 @synthesize dataSource, delegate;
 @synthesize numberOfElements;
-@synthesize currentSelectedIndex;
+@synthesize selectedIndex;
 @synthesize elementFont;
 @synthesize textColor = _textColor;
 @synthesize selectedTextColor = _selectedTextColor;
@@ -147,6 +147,7 @@
     
     self.textColor = [UIColor blackColor];
     self.selectedTextColor = [UIColor whiteColor];
+
     
 	}
 	return self;
@@ -161,7 +162,7 @@
   return result;
 }
 
-- (NSUInteger) currentSelectedIndex {
+- (NSUInteger) selectedIndex {
   return self.currentSelectedIndex_Internal == -1 ? NSNotFound : self.currentSelectedIndex_Internal;
 }
 
@@ -234,12 +235,17 @@
 		if (!CGRectIntersectsRect(scaledViewFrame, visibleBounds)) {
 			[view removeFromSuperview];
 		} else { 
-      // if it is still visible, update it's selected state
-      // view's tag is it's index
+      // there is a bug here.  
+      // for delegates that implement pickerView:viewForIndex, 
+      // scrollToIndex:animate: do does not update the selected status
+      //
+      // it works for delegates that implement pickerView:titleForIndex
+      // because when those views are generated, their selected state set
+      // 
+      // the work around is to set the view's selected state
       BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
       if (isSelected == YES) {
         // if this view is set to be selected, make sure it is over the selection point
-    
         NSUInteger currentIndex = [self nearestElementToCenter];
         isSelected = (currentIndex == self.currentSelectedIndex_Internal);
       }
@@ -310,11 +316,11 @@
 	if (self.currentSelectedIndex_Internal > -1 && 
       [self centerOfElementAtIndex:self.currentSelectedIndex_Internal] != [self currentCenter].x) {
 		if (adjustWhenFinished) {
-      [self scrollToElement:self.currentSelectedIndex_Internal animated:NO];
+     [self scrollToIndex:self.currentSelectedIndex_Internal animated:NO];
 		} else if (self.numberOfElements <= self.currentSelectedIndex_Internal) {
 			// if currentSelectedIndex no longer exists, select what is currently centered
 			self.currentSelectedIndex_Internal = [self nearestElementToCenter];
-			[self scrollToElement:self.currentSelectedIndex_Internal animated:NO];
+			[self scrollToIndex:self.currentSelectedIndex_Internal animated:NO];
 		}
 	}
 }
@@ -448,16 +454,23 @@
 
 
 #pragma mark - Scroll To Element Method
-- (void) scrollToElement:(NSUInteger) aIndex animated:(BOOL) animate {
+
+
+- (void) scrollToIndex:(NSUInteger) aIndex animated:(BOOL) aAnimate {
 	self.currentSelectedIndex_Internal = aIndex;
 	CGFloat x = [self centerOfElementAtIndex:aIndex] - self.selectionX;
-	[self.scrollView setContentOffset:CGPointMake(x, 0) animated:animate];
+	[self.scrollView setContentOffset:CGPointMake(x, 0) animated:aAnimate];
 
 	// notify delegate of the selected index
 	SEL delegateCall = @selector(pickerView:didSelectIndex:);
 	if (self.delegate && [self.delegate respondsToSelector:delegateCall]) {
 		[self.delegate pickerView:self didSelectIndex:aIndex];
 	}
+  
+  if (self.delegate && [self.delegate respondsToSelector:@selector(pickerView:viewForIndex:)]) {
+
+  }
+  
   [self setNeedsLayout];
 }
 
@@ -559,12 +572,13 @@
   elementLabel.textColor = self.textColor;
   elementLabel.highlightedTextColor = self.selectedTextColor;
 
-	// show selected status if this element is the selected one and is currently over selectionPoint
-	NSUInteger currentIndex = [self nearestElementToCenter];
+  // not fair to do this here - will not work with custom views
+  // show selected status if this element is the selected one and is currently over 
+  // selectionX
+  NSUInteger currentIndex = [self nearestElementToCenter];
 	BOOL isSelected = (self.currentSelectedIndex_Internal == aIndex) && 
   (currentIndex == self.currentSelectedIndex_Internal);
   [elementLabel setSelectedState:isSelected];
-
 	return elementLabel;
 }
 
@@ -644,12 +658,12 @@
 
 // return the tag for an element at a given index
 - (NSUInteger) tagForElementAtIndex:(NSUInteger) aIndex {
-	return (aIndex + 1) * 10;
+	return (aIndex + 1) * 51;
 }
 
 // return the index given an element's tag
 - (NSUInteger) indexForElement:(UIView *) aElement {
-	return (aElement.tag / 10) - 1;
+	return (aElement.tag / 51) - 1;
 }
 
 // what is the center of the element at the given index? 
@@ -780,7 +794,7 @@
 
 // move scroll view to position nearest element under the center
 - (void) scrollToElementNearestToCenter {
-	[self scrollToElement:[self nearestElementToCenter] animated:YES];
+	[self scrollToIndex:[self nearestElementToCenter] animated:YES];
 }
 
 
@@ -791,7 +805,7 @@
 		CGPoint tapLocation    = [aRecognizer locationInView:self.scrollView];
 		NSUInteger elementIndex = [self elementContainingPoint:tapLocation];
 		if (elementIndex != NSNotFound) { // point not in element
-			[self scrollToElement:elementIndex animated:YES];
+			[self scrollToIndex:elementIndex animated:YES];
 		}
 	}
 }

@@ -8,6 +8,8 @@
 
 #import "TestViewController.h"
 #import <QuartzCore/QuartzCore.h>
+#include <stdlib.h>
+#include "math.h"
 
 @interface TestElementView : UIView <V8HorizontalPickerElementView>
 
@@ -75,6 +77,7 @@
 
 @property (nonatomic, strong) NSArray *titleArray;
 @property (nonatomic, strong) NSArray *views;
+
 @end
 
 @implementation TestElementPickerDelegate
@@ -124,6 +127,9 @@
 @interface TestViewController ()
 // required because we need to retain this delegate (in ARC there is explicit retaining)
 @property (nonatomic, strong) TestElementPickerDelegate *tepd;
+@property (nonatomic, strong) V8HorizontalPickerView *pv2;
+
+- (void) buttonTouchedScrollPv2:(id) sender;
 @end
 
 
@@ -133,6 +139,7 @@
 @synthesize nextButton, reloadButton;
 @synthesize infoLabel;
 @synthesize tepd;
+@synthesize pv2;
 
 #pragma mark - iVars
 NSMutableArray *titleArray;
@@ -187,6 +194,7 @@ int indexCount;
   pickerView.leftEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"left_fade"]];
   pickerView.rightEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"right_fade"]];
 	[self.view addSubview:pickerView];
+  [pickerView scrollToIndex:3 animated:NO];
   
   
   tmpFrame = CGRectMake(0, 0, 320, 50);
@@ -203,9 +211,10 @@ int indexCount;
   pv.leftScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
   pv.rightScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
   [self.view addSubview:pv];
+  [pv scrollToIndex:4 animated:NO];
   
   tmpFrame = CGRectMake(0, 60, 320, 54);
-  V8HorizontalPickerView *pv2 = [[V8HorizontalPickerView alloc] initWithFrame:tmpFrame];
+  self.pv2 = [[V8HorizontalPickerView alloc] initWithFrame:tmpFrame];
   pv2.backgroundColor   = [UIColor lightGrayColor];
   self.tepd = [[TestElementPickerDelegate alloc] init];
 	pv2.delegate    = tepd;
@@ -216,8 +225,18 @@ int indexCount;
   pv2.scrollEdgeViewPadding = 80;
   pv2.leftScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
   pv2.rightScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
-  NSLog(@"selected index: %d", pv2.currentSelectedIndex);
+  NSLog(@"selected index: %d", pv2.selectedIndex);
   [self.view addSubview:pv2];
+
+  UIButton *scrollButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 400, 80, 50)];
+  [scrollButton setTitle:@"scroll pv2" forState:UIControlStateNormal];
+  scrollButton.titleLabel.font = [UIFont systemFontOfSize:12];
+  scrollButton.backgroundColor = [UIColor whiteColor];
+  [scrollButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+  [scrollButton addTarget:self action:@selector(buttonTouchedScrollPv2:) 
+         forControlEvents:UIControlEventTouchUpInside];
+  [self.view addSubview:scrollButton];
+  
   
 	self.nextButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 	y = y + tmpFrame.size.height + spacing;
@@ -255,8 +274,23 @@ int indexCount;
 
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
-	[pickerView scrollToElement:0 animated:NO];
+//	[pickerView scrollToIndex:0 animated:NO];
+//[self.pv2 scrollToIndex:4 animated:YES];
+  [self.pv2 scrollToIndex:4 animated:NO];
+  [self.pv2 scrollToIndex:4 animated:NO];
+  
+  NSLog(@"selected index: %d", pv2.selectedIndex);
 }
+
+- (void) buttonTouchedScrollPv2:(id)sender {
+  static const float ARC4RANDOM_MAX = 0x100000000;
+  NSUInteger min = 0;
+  NSUInteger max = [self.tepd numberOfElementsInPickerView:self.pv2] - 1;
+  NSUInteger index = ((max - min + 1) * (arc4random() / ARC4RANDOM_MAX)) + min;
+  NSLog(@"index = %d", index);
+  [self.pv2 scrollToIndex:index animated:YES];
+}
+
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
 	return YES;
@@ -303,7 +337,7 @@ int indexCount;
 
 #pragma mark - Button Tap Handlers
 - (void)nextButtonTapped:(id)sender {
-	[pickerView scrollToElement:indexCount animated:NO];
+	[pickerView scrollToIndex:indexCount animated:NO];
 	indexCount += 1;
 	if ([titleArray count] <= indexCount) {
 		indexCount = 0;
