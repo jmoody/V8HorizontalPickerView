@@ -120,7 +120,8 @@
 @synthesize currentSelectedIndex;
 @synthesize elementFont, textColor, selectedTextColor;
 @synthesize selectionX = _selectionX;
-@synthesize selectionIndicatorView, indicatorPosition;
+@synthesize selectionIndicatorView = _selectionIndicatorView;
+@synthesize indicatorPosition = _indicatorPosition;
 @synthesize leftEdgeView, rightEdgeView;
 @synthesize leftScrollEdgeView, rightScrollEdgeView, scrollEdgeViewPadding;
 
@@ -138,11 +139,11 @@
 - (id) initWithFrame:(CGRect) frame {
 	self = [super initWithFrame:frame];
   if (self) {
+    _elementWidths = nil;
 		self.scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
     [self configureScrollView];
     [self addSubview:self.scrollView];
     
-    //self.elementWidths = [NSMutableArray array];
 		self.textColor   = [UIColor blackColor];
 		self.elementFont = [UIFont systemFontOfSize:14.0];
 
@@ -150,22 +151,18 @@
 		self.currentSelectedIndex_Internal = -1; 
 		
     self.elementPadding       = 0;
-//		self.dataHasBeenLoaded    = NO;
 		self.scrollSizeHasBeenSet = NO;
 		self.scrollingBasedOnUserInteraction = NO;
 
 		// default to the center
-		self.selectionPoint = CGPointMake(frame.size.width / 2, 0.0);
+		_selectionX = frame.size.width/2;
 		self.indicatorPosition = V8HorizontalPickerIndicatorBottom;
     
-    // possible problem
 		self.firstVisibleElement = -1;
 		self.lastVisibleElement  = -1;
 
 		self.scrollEdgeViewPadding = 0.0;
-
 		self.autoresizesSubviews = YES;
-    _elementWidths = nil;
 	}
 	return self;
 }
@@ -214,7 +211,6 @@
 
 	SEL titleForElementSelector = @selector(horizontalPickerView:titleForElementAtIndex:);
 	SEL viewForElementSelector  = @selector(horizontalPickerView:viewForElementAtIndex:);
-//	SEL setSelectedSelector     = @selector(setSelectedElement:);
 
 	CGRect visibleBounds   = [self bounds];
 	CGRect scaledViewFrame = CGRectZero;
@@ -236,8 +232,6 @@
         isSelected = (currentIndex == self.currentSelectedIndex_Internal);
       }
       [view setSelectedState:isSelected];
-      // casting to V8HorizontalPickerLabel so we can call this without all the NSInvocation jazz
-//      [(V8HorizontalPickerLabel *)view setSelectedState:isSelected];
     }
 	}
 
@@ -312,9 +306,10 @@
 
 #pragma mark - Getters and Setters
 
-- (void) setSelectionPoint:(CGPoint) aPoint {
-	if (!CGPointEqualToPoint(aPoint, self.selectionPoint)) {
-		selectionPoint = aPoint;
+- (void) setSelectionX:(CGFloat) aSelectionX {
+  if (_selectionX != aSelectionX) {
+		_selectionX = aSelectionX;
+    [self drawPositionIndicator];
 		[self updateScrollContentInset];
 	}
 }
@@ -329,18 +324,18 @@
 //}
 
 - (void) setIndicatorPosition:(V8HorizontalPickerIndicatorPosition) aPosition {
-	if (indicatorPosition != aPosition) {
-		indicatorPosition = aPosition;
+	if (_indicatorPosition != aPosition) {
+		_indicatorPosition = aPosition;
 		[self drawPositionIndicator];
 	}
 }
 
 - (void) setSelectionIndicatorView:(UIView *) aIndicatorView {
-	if (selectionIndicatorView != aIndicatorView) {
-		if (selectionIndicatorView) {
-			[selectionIndicatorView removeFromSuperview];
+	if (_selectionIndicatorView != aIndicatorView) {
+		if (_selectionIndicatorView != nil) {
+			[_selectionIndicatorView removeFromSuperview];
 		}
-		selectionIndicatorView = aIndicatorView;
+		_selectionIndicatorView = aIndicatorView;
 		[self drawPositionIndicator];
 	}
 }
@@ -398,12 +393,12 @@
 	}
 }
 
-- (void)setFrame:(CGRect)newFrame {
-	if (!CGRectEqualToRect(self.frame, newFrame)) {
+- (void) setFrame:(CGRect) aNewFrame {
+	if (!CGRectEqualToRect(self.frame, aNewFrame)) {
 		// causes recalulation of offsets, etc based on new size
 		scrollSizeHasBeenSet = NO;
 	}
-	[super setFrame:newFrame];
+	[super setFrame:aNewFrame];
 }
 
 #pragma mark - Data Fetching Methods
@@ -429,7 +424,7 @@
 #pragma mark - Scroll To Element Method
 - (void) scrollToElement:(NSUInteger) aIndex animated:(BOOL) animate {
 	self.currentSelectedIndex_Internal = aIndex;
-	CGFloat x = [self centerOfElementAtIndex:aIndex] - selectionPoint.x;
+	CGFloat x = [self centerOfElementAtIndex:aIndex] - self.selectionX;
 	[self.scrollView setContentOffset:CGPointMake(x, 0) animated:animate];
 
 	// notify delegate of the selected index
@@ -503,7 +498,7 @@
 
 - (void) drawPositionIndicator {
 	CGRect indicatorFrame = self.selectionIndicatorView.frame;
-	CGFloat x = self.selectionPoint.x - (indicatorFrame.size.width / 2);
+	CGFloat x = self.selectionX - (indicatorFrame.size.width / 2);
 	CGFloat y;
 
 	switch (self.indicatorPosition) {
@@ -597,9 +592,9 @@
 		//  +---------|---------------+
 		//  |####| Element |**********| << UIScrollView
 		//  +-------------------------+
-		CGFloat firstInset = self.selectionPoint.x - halfFirstWidth;
+		CGFloat firstInset = self.selectionX - halfFirstWidth;
 		firstInset -= [self leftScrollEdgeWidth];
-		CGFloat lastInset  = (scrollerWidth - self.selectionPoint.x) - halfLastWidth;
+		CGFloat lastInset  = (scrollerWidth - self.selectionX) - halfLastWidth;
 		lastInset -= [self rightScrollEdgeWidth];
 
 		self.scrollView.contentInset = UIEdgeInsetsMake(0, firstInset, 0, lastInset);
@@ -704,7 +699,7 @@
 
 // what is the "center", relative to the content offset and adjusted to selection point?
 - (CGPoint) currentCenter {
-	CGFloat x = self.scrollView.contentOffset.x + self.selectionPoint.x;
+	CGFloat x = self.scrollView.contentOffset.x + self.selectionX;
 	return CGPointMake(x, 0.0);
 }
 

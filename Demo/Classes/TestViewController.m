@@ -60,7 +60,7 @@ int indexCount;
 	pickerView.delegate    = self;
 	pickerView.dataSource  = self;
 	pickerView.elementFont = [UIFont boldSystemFontOfSize:14.0f];
-	pickerView.selectionPoint = CGPointMake(120, 0);
+	pickerView.selectionX = 120;
 
 	// add carat or other view to indicate selected element
 	UIImageView *indicator = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
@@ -76,13 +76,13 @@ int indexCount;
 	pv.delegate    = self;
 	pv.dataSource  = self;
 	pv.elementFont = [UIFont boldSystemFontOfSize:14.0f];
-  pv.selectionPoint = CGPointMake(60, 0);
+//  pv.selectionPoint = CGPointMake(60, 0);
   [self.view addSubview:pv];
   
   indicator = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
 	pv.selectionIndicatorView = indicator;
   pv.indicatorPosition = V8HorizontalPickerIndicatorBottom;
-  pv.selectionPoint = CGPointMake(180, 0);
+  pv.selectionX = 180;
 
   
 //	pickerView.indicatorPosition = V8HorizontalPickerIndicatorTop; // specify indicator's location
