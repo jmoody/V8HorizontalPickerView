@@ -32,10 +32,6 @@ typedef enum {
 // what font to use for the element labels?
 @property (nonatomic) UIFont *elementFont;
 
-//// color of labels used in picker
-//@property (nonatomic, strong) UIColor *textColor;
-//@property (nonatomic, strong) UIColor *selectedTextColor; // color of current selected element
-
 // the point, defaults to center of view, where the selected element sits
 @property (nonatomic, assign) CGFloat selectionX;
 @property (nonatomic, strong) UIView *selectionIndicatorView;

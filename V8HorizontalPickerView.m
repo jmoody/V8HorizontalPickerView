@@ -100,7 +100,9 @@
 @synthesize selectionIndicatorView = _selectionIndicatorView;
 @synthesize indicatorPosition = _indicatorPosition;
 @synthesize leftEdgeView, rightEdgeView;
-@synthesize leftScrollEdgeView, rightScrollEdgeView, scrollEdgeViewPadding;
+@synthesize leftScrollEdgeView = _leftScrollEdgeView;
+@synthesize rightScrollEdgeView = _rightScrollEdgeView;
+@synthesize scrollEdgeViewPadding = _scrollEdgeViewPadding;
 
 @synthesize scrollView;
 @synthesize elementWidths = _elementWidths;
@@ -135,7 +137,7 @@
 		self.firstVisibleElement = -1;
 		self.lastVisibleElement  = -1;
 
-		self.scrollEdgeViewPadding = 0.0;
+		_scrollEdgeViewPadding = 0.0;
 		self.autoresizesSubviews = YES;
     
     self.textColor = [UIColor blackColor];
@@ -232,10 +234,14 @@
       BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
       if (isSelected == YES) {
         // if this view is set to be selected, make sure it is over the selection point
+    
         NSUInteger currentIndex = [self nearestElementToCenter];
         isSelected = (currentIndex == self.currentSelectedIndex_Internal);
       }
-      [view setSelectedState:isSelected];
+      // could be a left or right scroll view image
+      if ([view conformsToProtocol:@protocol(V8HorizontalPickerElementView)]) {
+        [view setSelectedState:isSelected];
+      }
     }
 	}
 
@@ -270,22 +276,22 @@
 
 	// add the left or right edge views if visible
 	CGRect viewFrame = CGRectZero;
-	if (leftScrollEdgeView) {
+	if (self.leftScrollEdgeView) {
 		viewFrame = [self frameForLeftScrollEdgeView];
 		scaledViewFrame = [self.scrollView convertRect:viewFrame toView:self];
 		if (CGRectIntersectsRect(scaledViewFrame, visibleBounds) && 
-        ![leftScrollEdgeView isDescendantOfView:self.scrollView]) {
-			leftScrollEdgeView.frame = viewFrame;
-			[self.scrollView addSubview:leftScrollEdgeView];
+        ![self.leftScrollEdgeView isDescendantOfView:self.scrollView]) {
+			self.leftScrollEdgeView.frame = viewFrame;
+			[self.scrollView addSubview:self.leftScrollEdgeView];
 		}
 	}
-	if (rightScrollEdgeView) {
+	if (self.rightScrollEdgeView) {
 		viewFrame = [self frameForRightScrollEdgeView];
 		scaledViewFrame = [self.scrollView convertRect:viewFrame toView:self];
 		if (CGRectIntersectsRect(scaledViewFrame, visibleBounds) && 
-        ![rightScrollEdgeView isDescendantOfView:self.scrollView]) {
-			rightScrollEdgeView.frame = viewFrame;
-			[self.scrollView addSubview:rightScrollEdgeView];
+        ![self.rightScrollEdgeView isDescendantOfView:self.scrollView]) {
+			self.rightScrollEdgeView.frame = viewFrame;
+			[self.scrollView addSubview:self.rightScrollEdgeView];
 		}
 	}
 
@@ -310,15 +316,10 @@
 
 #pragma mark - Getters and Setters
 
-- (void) setSelectionX:(CGFloat) aSelectionX {
-  if (_selectionX != aSelectionX) {
-		_selectionX = aSelectionX;
-    [self drawPositionIndicator];
-		[self updateScrollContentInset];
-	}
-}
 
-// possible problem
+/*
+ joshua > not sure this is necessary
+
 //// allow the setting of this views background color to change the scroll view
 //- (void) setBackgroundColor:(UIColor *)newColor {
 //  
@@ -326,6 +327,15 @@
 //	self.scrollView.backgroundColor = newColor;
 //	// TODO: set all subviews as well?
 //}
+*/
+
+- (void) setSelectionX:(CGFloat) aSelectionX {
+  if (_selectionX != aSelectionX) {
+		_selectionX = aSelectionX;
+    [self drawPositionIndicator];
+		[self updateScrollContentInset];
+	}
+}
 
 - (void) setIndicatorPosition:(V8HorizontalPickerIndicatorPosition) aPosition {
 	if (_indicatorPosition != aPosition) {
@@ -375,28 +385,34 @@
 }
 
 - (void) setLeftScrollEdgeView:(UIView *) aLeftView {
-	if (leftScrollEdgeView != aLeftView) {
-		if (leftScrollEdgeView) {
-			[leftScrollEdgeView removeFromSuperview];
+  if (_leftScrollEdgeView != aLeftView) {
+		if (_leftScrollEdgeView != nil) {
+			[_leftScrollEdgeView removeFromSuperview];
 		}
-		leftScrollEdgeView = aLeftView;
+		_leftScrollEdgeView = aLeftView;
 		scrollSizeHasBeenSet = NO;
 		[self setNeedsLayout];
 	}
 }
 
 - (void) setRightScrollEdgeView:(UIView *) aRightView {
-	if (rightScrollEdgeView != aRightView) {
-		if (rightScrollEdgeView) {
-			[rightScrollEdgeView removeFromSuperview];
+	if (_rightScrollEdgeView != aRightView) {
+		if (_rightScrollEdgeView != nil) {
+			[_rightScrollEdgeView removeFromSuperview];
 		}
-		rightScrollEdgeView = aRightView;
-
+		_rightScrollEdgeView = aRightView;
 		scrollSizeHasBeenSet = NO;
 		[self setNeedsLayout];
 	}
 }
 
+- (void) setScrollEdgeViewPadding:(CGFloat) aScrollEdgeViewPadding {
+  if (_scrollEdgeViewPadding != aScrollEdgeViewPadding) {
+    _scrollEdgeViewPadding = aScrollEdgeViewPadding;
+    scrollSizeHasBeenSet = NO;
+		[self setNeedsLayout];
+	}
+}
 - (void) setFrame:(CGRect) aNewFrame {
 	if (!CGRectEqualToRect(self.frame, aNewFrame)) {
 		// causes recalulation of offsets, etc based on new size
@@ -652,7 +668,7 @@
 
 // what is the frame for the left scroll edge view?
 - (CGRect) frameForLeftScrollEdgeView {
-	if (leftScrollEdgeView != nil) {
+	if (self.leftScrollEdgeView != nil) {
 		CGFloat scrollHeight = self.scrollView.contentSize.height;
 		CGFloat viewHeight   = self.leftScrollEdgeView.frame.size.height;
 		return CGRectMake(0.0f, 

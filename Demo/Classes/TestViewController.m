@@ -68,7 +68,9 @@ int indexCount;
 	// add carat or other view to indicate selected element
 	UIImageView *indicator = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
 	pickerView.selectionIndicatorView = indicator;
-  
+  pickerView.leftEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"left_fade"]];
+  pickerView.rightEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"right_fade"]];
+
   
   
   tmpFrame = CGRectMake(0, 0, 320, 50);
@@ -84,30 +86,19 @@ int indexCount;
 	pv.selectionIndicatorView = indicator;
   pv.indicatorPosition = V8HorizontalPickerIndicatorBottom;
   pv.selectionX = 180;
-  [pickerView setTitleColor:[UIColor blueColor] forSelectionState:V8HorizontalPickerSelectionStateSelected];
-  [pickerView setTitleColor:[UIColor greenColor] forSelectionState:V8HorizontalPickerSelectionStateUnselected];
+//  [pv setTitleColor:[UIColor blueColor] forSelectionState:V8HorizontalPickerSelectionStateSelected];
+//  [pv setTitleColor:[UIColor greenColor] forSelectionState:V8HorizontalPickerSelectionStateUnselected];
 
   
 //	pickerView.indicatorPosition = V8HorizontalPickerIndicatorTop; // specify indicator's location
 
 	// add gradient images to left and right of view if desired
-//	UIImageView *leftFade = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"left_fade"]];
-//	pickerView.leftEdgeView = leftFade;
-//	[leftFade release];
-//
-//	UIImageView *rightFade = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"right_fade"]];
-//	pickerView.rightEdgeView = rightFade;
-//	[rightFade release];
 
 	// add image to left of scroll area
-//	UIImageView *leftImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
-//	pickerView.leftScrollEdgeView = leftImage;
-//	[leftImage release];
-//	pickerView.scrollEdgeViewPadding = 20.0f;
-//
-//	UIImageView *rightImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
-//	pickerView.rightScrollEdgeView = rightImage;
-//	[rightImage release];
+  
+  pv.leftScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loopback"]];
+  pv.rightScrollEdgeView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"airplane"]];
+  
 
 	[self.view addSubview:pickerView];
 
