@@ -229,14 +229,14 @@ int indexCount;
   [self.view addSubview:pv2];
   [self.pv2 scrollToIndex:4 animated:YES];
   
-  UIButton *scrollButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 400, 80, 50)];
-  [scrollButton setTitle:@"scroll pv2" forState:UIControlStateNormal];
-  scrollButton.titleLabel.font = [UIFont systemFontOfSize:12];
-  scrollButton.backgroundColor = [UIColor whiteColor];
-  [scrollButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-  [scrollButton addTarget:self action:@selector(buttonTouchedScrollPv2:) 
-         forControlEvents:UIControlEventTouchUpInside];
-  [self.view addSubview:scrollButton];
+//  UIButton *scrollButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 400, 80, 50)];
+//  [scrollButton setTitle:@"scroll pv2" forState:UIControlStateNormal];
+//  scrollButton.titleLabel.font = [UIFont systemFontOfSize:12];
+//  scrollButton.backgroundColor = [UIColor whiteColor];
+//  [scrollButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//  [scrollButton addTarget:self action:@selector(buttonTouchedScrollPv2:) 
+//         forControlEvents:UIControlEventTouchUpInside];
+//  [self.view addSubview:scrollButton];
   
   
 	self.nextButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
@@ -275,12 +275,6 @@ int indexCount;
 
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
-//	[pickerView scrollToIndex:0 animated:NO];
-//[self.pv2 scrollToIndex:4 animated:YES];
-//  [self.pv2 scrollToIndex:4 animated:NO];
-//  [self.pv2 scrollToIndex:4 animated:NO];
-  
-//  NSLog(@"selected index: %d", pv2.selectedIndex);
 }
 
 - (void) buttonTouchedScrollPv2:(id)sender {
