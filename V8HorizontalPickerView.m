@@ -19,9 +19,9 @@
 // sub-class of UILabel that knows how to change it's state
 @interface V8HorizontalPickerLabel : UILabel <V8HorizontalPickerElementState> { }
 
-@property (nonatomic, assign) BOOL isSelected;
-@property (nonatomic, strong) UIColor *selectedStateColor;
-@property (nonatomic, strong) UIColor *normalStateColor;
+@property (nonatomic, assign, readonly) BOOL isSelected;
+//@property (nonatomic, strong, readonly) UIColor *selectedStateColor;
+//@property (nonatomic, strong, readonly) UIColor *normalStateColor;
 
 @end
 
@@ -29,29 +29,34 @@
 
 @implementation V8HorizontalPickerLabel : UILabel
 
-@synthesize isSelected, selectedStateColor, normalStateColor;
+@synthesize isSelected = _isSelected;
+//@synthesize selectedStateColor;
+//@synthesize normalStateColor;
 
 
 - (void) setSelectedState:(BOOL) aSelected {
-	if (self.isSelected != aSelected) {
-		if (aSelected == YES) {
-			self.textColor = self.selectedStateColor;
+//  NSLog(@"selected color   = %@", self.selectedStateColor);
+//  NSLog(@"unselected color = %@", self.normalStateColor);
+//  NSLog(@"i am selected: %d - i should transition to state: %d", _isSelected, aSelected);
+  if (_isSelected != aSelected) {
+    if (aSelected == YES) {
+			self.textColor = [UIColor whiteColor];//self.selectedStateColor;
 		} else {
-			self.textColor = self.normalStateColor;
+			self.textColor = [UIColor blackColor];//self.normalStateColor;
 		}
-		self.isSelected = aSelected;
-		[self setNeedsLayout];
+		_isSelected = aSelected;
+//		[self setNeedsLayout];
 	}
 }
 
-// whoa - possibly unnecessary
-- (void) setNormalStateColor:(UIColor *) aColor {
-	if (self.normalStateColor != aColor) {
-		normalStateColor = aColor;
-		self.textColor = aColor;
-		[self setNeedsLayout];
-	}
-}
+//// whoa - possibly unnecessary
+//- (void) setNormalStateColor:(UIColor *) aColor {
+//	if (self.normalStateColor != aColor) {
+//		normalStateColor = aColor;
+//		self.textColor = aColor;
+//		[self setNeedsLayout];
+//	}
+//}
 
 @end
 
@@ -114,12 +119,13 @@
 @synthesize numberOfElements;
 @synthesize currentSelectedIndex;
 @synthesize elementFont, textColor, selectedTextColor;
-@synthesize selectionPoint, selectionIndicatorView, indicatorPosition;
+@synthesize selectionX = _selectionX;
+@synthesize selectionIndicatorView, indicatorPosition;
 @synthesize leftEdgeView, rightEdgeView;
 @synthesize leftScrollEdgeView, rightScrollEdgeView, scrollEdgeViewPadding;
 
 @synthesize scrollView;
-@synthesize elementWidths;
+@synthesize elementWidths = _elementWidths;
 @synthesize elementPadding;
 @synthesize dataHasBeenLoaded;
 @synthesize scrollSizeHasBeenSet;
@@ -159,7 +165,7 @@
 		self.scrollEdgeViewPadding = 0.0;
 
 		self.autoresizesSubviews = YES;
-    elementWidths = nil;
+    _elementWidths = nil;
 	}
 	return self;
 }
@@ -175,11 +181,11 @@
 }
 
 - (NSUInteger) currentSelectedIndex {
-  return currentSelectedIndex == -1 ? NSNotFound : self.currentSelectedIndex_Internal;
+  return self.currentSelectedIndex_Internal == -1 ? NSNotFound : self.currentSelectedIndex_Internal;
 }
 
 - (NSArray *) elementWidths {
-  if (elementWidths == nil) {
+  if (_elementWidths == nil) {
     NSUInteger numElements = self.numberOfElements;
     SEL delegateCall = @selector(horizontalPickerView:widthForElementAtIndex:);
     NSMutableArray *array = [NSMutableArray arrayWithCapacity:numElements];
@@ -189,9 +195,9 @@
         [array addObject:[NSNumber numberWithDouble:width]];
       }
     }
-    elementWidths = [NSArray arrayWithArray:array];
+    _elementWidths = [NSArray arrayWithArray:array];
   }
-  return elementWidths;
+  return _elementWidths;
 }
 
 #pragma mark - LayoutSubViews
@@ -208,31 +214,31 @@
 
 	SEL titleForElementSelector = @selector(horizontalPickerView:titleForElementAtIndex:);
 	SEL viewForElementSelector  = @selector(horizontalPickerView:viewForElementAtIndex:);
-	SEL setSelectedSelector     = @selector(setSelectedElement:);
+//	SEL setSelectedSelector     = @selector(setSelectedElement:);
 
 	CGRect visibleBounds   = [self bounds];
 	CGRect scaledViewFrame = CGRectZero;
 
 	// remove any subviews that are no longer visible
-	for (UIView *view in [self.scrollView subviews]) {
+	for (UIView<V8HorizontalPickerElementState> *view in [self.scrollView subviews]) {
 		scaledViewFrame = [self.scrollView convertRect:[view frame] toView:self];
 
 		// if the view doesn't intersect, it's not visible, so we can recycle it
 		if (!CGRectIntersectsRect(scaledViewFrame, visibleBounds)) {
 			[view removeFromSuperview];
-		} else { // if it is still visible, update it's selected state
-			if ([view respondsToSelector:setSelectedSelector]) {
-				// view's tag is it's index
-				BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
-				if (isSelected == YES) {
-					// if this view is set to be selected, make sure it is over the selection point
-					NSUInteger currentIndex = [self nearestElementToCenter];
-					isSelected = (currentIndex == self.currentSelectedIndex_Internal);
-				}
-				// casting to V8HorizontalPickerLabel so we can call this without all the NSInvocation jazz
-				[(V8HorizontalPickerLabel *)view setSelectedState:isSelected];
-			}
-		}
+		} else { 
+      // if it is still visible, update it's selected state
+      // view's tag is it's index
+      BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
+      if (isSelected == YES) {
+        // if this view is set to be selected, make sure it is over the selection point
+        NSUInteger currentIndex = [self nearestElementToCenter];
+        isSelected = (currentIndex == self.currentSelectedIndex_Internal);
+      }
+      [view setSelectedState:isSelected];
+      // casting to V8HorizontalPickerLabel so we can call this without all the NSInvocation jazz
+//      [(V8HorizontalPickerLabel *)view setSelectedState:isSelected];
+    }
 	}
 
 	// find needed elements by looking at left and right edges of frame
@@ -375,7 +381,6 @@
 			[leftScrollEdgeView removeFromSuperview];
 		}
 		leftScrollEdgeView = aLeftView;
-
 		scrollSizeHasBeenSet = NO;
 		[self setNeedsLayout];
 	}
@@ -405,7 +410,7 @@
 
 - (void) reloadData {
   // nil out the array of widths
-  elementWidths = nil;
+  _elementWidths = nil;
 	// remove all scrollview subviews and "recycle" them
 	for (UIView *view in [self.scrollView subviews]) {
 		[view removeFromSuperview];
@@ -455,7 +460,7 @@
 
 - (void) scrollViewDidEndDragging:(UIScrollView *) aScrollView willDecelerate:(BOOL) aDecelerate {
 	// only do this if we aren't decelerating
-	if (aDecelerate == YES) {
+	if (aDecelerate == NO) {
 		[self scrollToElementNearestToCenter];
 	}
 }
@@ -496,7 +501,7 @@
   [self.scrollView addGestureRecognizer:tapRecognizer];
 }
 
-- (void)drawPositionIndicator {
+- (void) drawPositionIndicator {
 	CGRect indicatorFrame = self.selectionIndicatorView.frame;
 	CGFloat x = self.selectionPoint.x - (indicatorFrame.size.width / 2);
 	CGFloat y;
@@ -530,32 +535,18 @@
 	elementLabel.text            = aTitle;
 	elementLabel.font            = self.elementFont;
 
-	elementLabel.normalStateColor   = self.textColor;
-	elementLabel.selectedStateColor = self.selectedTextColor;
+//	elementLabel.normalStateColor   = self.textColor;
+//	elementLabel.selectedStateColor = self.selectedTextColor;
 
 	// show selected status if this element is the selected one and is currently over selectionPoint
 
 	NSUInteger currentIndex = [self nearestElementToCenter];
-  // ok this is weird ass shit
-	elementLabel.isSelected = (self.currentSelectedIndex_Internal == aIndex) && (currentIndex == self.currentSelectedIndex_Internal);
+	BOOL isSelected = (self.currentSelectedIndex_Internal == aIndex) && 
+  (currentIndex == self.currentSelectedIndex_Internal);
+  [elementLabel setSelectedState:isSelected];
 
 	return elementLabel;
 }
-
-
-#pragma mark - Delegate Calling Method (Internal Method)
-//- (NSArray *) askDelegateForElementWidths {
-//  NSUInteger numElements = self.numberOfElements;
-//	SEL delegateCall = @selector(horizontalPickerView:widthForElementAtIndex:);
-//	NSMutableArray *array = [NSMutableArray arrayWithCapacity:numElements];
-//  for (NSUInteger index = 0; index < numElements; index++) {
-//		if (self.delegate && [self.delegate respondsToSelector:delegateCall]) {
-//			CGFloat width = [self.delegate horizontalPickerView:self widthForElementAtIndex:index];
-//			[array addObject:[NSNumber numberWithDouble:width]];
-//    }
-//	}
-//  return [NSArray arrayWithArray:array];
-//}
 
 
 #pragma mark - View Calculation and Manipulation Methods (Internal Methods)

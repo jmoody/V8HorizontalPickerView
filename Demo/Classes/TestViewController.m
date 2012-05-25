@@ -60,11 +60,31 @@ int indexCount;
 	pickerView.delegate    = self;
 	pickerView.dataSource  = self;
 	pickerView.elementFont = [UIFont boldSystemFontOfSize:14.0f];
-	pickerView.selectionPoint = CGPointMake(60, 0);
+	pickerView.selectionPoint = CGPointMake(120, 0);
 
 	// add carat or other view to indicate selected element
 	UIImageView *indicator = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
 	pickerView.selectionIndicatorView = indicator;
+  
+  
+  
+  tmpFrame = CGRectMake(0, 0, 320, 50);
+  V8HorizontalPickerView *pv = [[V8HorizontalPickerView alloc] initWithFrame:tmpFrame];
+  pv.backgroundColor   = [UIColor darkGrayColor];
+	pv.selectedTextColor = [UIColor whiteColor];
+	pv.textColor   = [UIColor grayColor];
+	pv.delegate    = self;
+	pv.dataSource  = self;
+	pv.elementFont = [UIFont boldSystemFontOfSize:14.0f];
+  pv.selectionPoint = CGPointMake(60, 0);
+  [self.view addSubview:pv];
+  
+  indicator = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"indicator"]];
+	pv.selectionIndicatorView = indicator;
+  pv.indicatorPosition = V8HorizontalPickerIndicatorBottom;
+  pv.selectionPoint = CGPointMake(180, 0);
+
+  
 //	pickerView.indicatorPosition = V8HorizontalPickerIndicatorTop; // specify indicator's location
 
 	// add gradient images to left and right of view if desired
@@ -129,24 +149,9 @@ int indexCount;
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
 	return YES;
-//	(interfaceOrientation == UIInterfaceOrientationPortrait ||
-//	 interfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
-//	 interfaceOrientation == UIInterfaceOrientationLandscapeRight);
 }
 
-//- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
-//	CGFloat margin = 40.0f;
-//	CGFloat width = (self.view.frame.size.width - (margin * 2.0f));
-//	CGFloat height = 40.0f;
-//	CGRect tmpFrame;
-//	if (toInterfaceOrientation == UIInterfaceOrientationLandscapeLeft ||
-//		toInterfaceOrientation == UIInterfaceOrientationLandscapeRight) {
-//		tmpFrame = CGRectMake(margin, 50.0f, width + 100.0f, height);
-//	} else {
-//		tmpFrame = CGRectMake(margin, 150.0f, width, height);
-//	}
-//	pickerView.frame = tmpFrame;
-//}
+
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
 	CGFloat margin = 40.0f;

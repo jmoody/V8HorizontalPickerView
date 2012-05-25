@@ -33,7 +33,7 @@ typedef enum {
 @property (nonatomic, strong) UIColor *selectedTextColor; // color of current selected element
 
 // the point, defaults to center of view, where the selected element sits
-@property (nonatomic, assign) CGPoint selectionPoint;
+@property (nonatomic, assign) CGFloat selectionX;
 @property (nonatomic, strong) UIView *selectionIndicatorView;
 
 @property (nonatomic, assign) V8HorizontalPickerIndicatorPosition indicatorPosition;

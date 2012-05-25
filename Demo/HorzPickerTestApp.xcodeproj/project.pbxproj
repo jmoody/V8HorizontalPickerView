@@ -252,6 +252,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = HorzPickerTestApp_Prefix.pch;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				INFOPLIST_FILE = "HorzPickerTestApp-Info.plist";
 				PRODUCT_NAME = HorzPickerTestApp;
 			};
@@ -266,6 +267,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = HorzPickerTestApp_Prefix.pch;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				INFOPLIST_FILE = "HorzPickerTestApp-Info.plist";
 				PRODUCT_NAME = HorzPickerTestApp;
 				VALIDATE_PRODUCT = YES;
@@ -298,6 +300,7 @@
 				GCC_PREFIX_HEADER = HorzPickerTestApp_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = "V8TESTINGUI=1";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				INFOPLIST_FILE = "HorzPickerTestApp-Info.plist";
 				PRODUCT_NAME = HorzPickerTestApp;
 			};
