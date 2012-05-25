@@ -1,3 +1,38 @@
+Fork Notes
+======================
+
+Shawn did a great job on this picker view - he really nailed the look-and-feel. 
+The scrolling and snap-to effects are brilliant!  The indicator view and the 
+selection point are great.  The option of adding a left/right edge _and_ 
+left/right scroll view is fantastic.
+
+I discovered a few limitations and a couple of bugs so I thought I would have 
+a crack at fixing them.
+
+1. delegates can now be shared across multiple picker views
+2. converted the project and sources to ARC
+3. the frames of custom views were not being set correctly
+4. the y and height of custom view frames were not being respected
+5. the selected state of custom views was not being set correct on the first
+   call to scrollToIndex:animate:
+6. it was possible to produce a bad UI state (element not centered over selection
+   point or scroll view scrolling past all the elements) if scrollToIndex:selected
+   was called before layoutSubviews
+
+In the course of my bug fixes, I also did some refactoring.
+
+1. the delegate and data source protocols to be more terse
+2. converted NSInteger to NSUInteger where appropriate
+3. converted NSInteger to CGFloat where appropriate
+4. removed several state variables that were no longer necessary
+5. dramatically simplified the V8HorizontalPickerLabel class
+6. replaced textColor and  selectedTextColor properties with:
+   - (void) setTitleColor:(UIColor *) aColor 
+        forSelectionState:(V8HorizontalPickerSelectionState) aState;
+7. added a little (not enough!) clarifying documentation
+
+-jjm
+
 V8HorizontalPickerView
 ======================
 by Shawn Veader (@veader) of [V8 Logic](http://v8logic.com) / [V8 Labs, LLC](http://v8labs.com)
