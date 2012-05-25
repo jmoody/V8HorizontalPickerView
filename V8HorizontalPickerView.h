@@ -14,6 +14,10 @@ typedef enum {
 	V8HorizontalPickerIndicatorTop	
 } V8HorizontalPickerIndicatorPosition;
 
+typedef enum {
+  V8HorizontalPickerSelectionStateSelected = 0,
+  V8HorizontalPickerSelectionStateUnselected
+} V8HorizontalPickerSelectionState;
 
 
 @interface V8HorizontalPickerView : UIView <UIScrollViewDelegate> { }
@@ -28,9 +32,9 @@ typedef enum {
 // what font to use for the element labels?
 @property (nonatomic) UIFont *elementFont;
 
-// color of labels used in picker
-@property (nonatomic, strong) UIColor *textColor;
-@property (nonatomic, strong) UIColor *selectedTextColor; // color of current selected element
+//// color of labels used in picker
+//@property (nonatomic, strong) UIColor *textColor;
+//@property (nonatomic, strong) UIColor *selectedTextColor; // color of current selected element
 
 // the point, defaults to center of view, where the selected element sits
 @property (nonatomic, assign) CGFloat selectionX;
@@ -52,6 +56,9 @@ typedef enum {
 
 - (void) reloadData;
 - (void) scrollToElement:(NSUInteger) aIndex animated:(BOOL) animate;
+- (void) setTitleColor:(UIColor *) aColor forSelectionState:(V8HorizontalPickerSelectionState) aState;
+
+
 
 @end
 

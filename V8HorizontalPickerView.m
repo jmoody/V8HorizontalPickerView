@@ -17,11 +17,7 @@
 #import "V8HorizontalPickerView.h"
 
 // sub-class of UILabel that knows how to change it's state
-@interface V8HorizontalPickerLabel : UILabel <V8HorizontalPickerElementState> { }
-
-@property (nonatomic, assign, readonly) BOOL isSelected;
-//@property (nonatomic, strong, readonly) UIColor *selectedStateColor;
-//@property (nonatomic, strong, readonly) UIColor *normalStateColor;
+@interface V8HorizontalPickerLabel : UILabel <V8HorizontalPickerElementView> { }
 
 @end
 
@@ -29,42 +25,15 @@
 
 @implementation V8HorizontalPickerLabel : UILabel
 
-@synthesize isSelected = _isSelected;
-//@synthesize selectedStateColor;
-//@synthesize normalStateColor;
-
-
 - (void) setSelectedState:(BOOL) aSelected {
-//  NSLog(@"selected color   = %@", self.selectedStateColor);
-//  NSLog(@"unselected color = %@", self.normalStateColor);
-//  NSLog(@"i am selected: %d - i should transition to state: %d", _isSelected, aSelected);
-  if (_isSelected != aSelected) {
-    if (aSelected == YES) {
-			self.textColor = [UIColor whiteColor];//self.selectedStateColor;
-		} else {
-			self.textColor = [UIColor blackColor];//self.normalStateColor;
-		}
-		_isSelected = aSelected;
-//		[self setNeedsLayout];
-	}
+   self.highlighted = aSelected;
 }
-
-//// whoa - possibly unnecessary
-//- (void) setNormalStateColor:(UIColor *) aColor {
-//	if (self.normalStateColor != aColor) {
-//		normalStateColor = aColor;
-//		self.textColor = aColor;
-//		[self setNeedsLayout];
-//	}
-//}
 
 @end
 
 
-#pragma mark - Internal Method Interface
 @interface V8HorizontalPickerView ()
 
-#pragma mark - iVars
 @property (nonatomic, strong) UIScrollView *scrollView;
 
 // collection of widths of each element.
@@ -80,7 +49,12 @@
 @property (nonatomic, assign) NSInteger firstVisibleElement;
 @property (nonatomic, assign) NSInteger lastVisibleElement;
 
+// distinct from the public read-only currentSelectedIndex
 @property (nonatomic, assign) NSInteger currentSelectedIndex_Internal;
+
+// color of labels used in picker
+@property (nonatomic, strong) UIColor *textColor;
+@property (nonatomic, strong) UIColor *selectedTextColor;
 
 
 - (void) setTotalWidthOfScrollContent;
@@ -88,7 +62,8 @@
 
 - (void) configureScrollView;
 - (void) drawPositionIndicator;
-- (V8HorizontalPickerLabel *) labelForForElementAtIndex:(NSUInteger) aIndex withTitle:(NSString *) aTitle;
+- (V8HorizontalPickerLabel *) labelForForElementAtIndex:(NSUInteger) aIndex 
+                                              withTitle:(NSString *) aTitle;
 - (CGRect) frameForElementAtIndex:(NSUInteger) aIndex;
 
 - (CGRect) frameForLeftScrollEdgeView;
@@ -118,7 +93,9 @@
 @synthesize dataSource, delegate;
 @synthesize numberOfElements;
 @synthesize currentSelectedIndex;
-@synthesize elementFont, textColor, selectedTextColor;
+@synthesize elementFont;
+@synthesize textColor = _textColor;
+@synthesize selectedTextColor = _selectedTextColor;
 @synthesize selectionX = _selectionX;
 @synthesize selectionIndicatorView = _selectionIndicatorView;
 @synthesize indicatorPosition = _indicatorPosition;
@@ -144,10 +121,7 @@
     [self configureScrollView];
     [self addSubview:self.scrollView];
     
-		self.textColor   = [UIColor blackColor];
-		self.elementFont = [UIFont systemFontOfSize:14.0];
-
-    // nothing is selected yet
+		// nothing is selected yet
 		self.currentSelectedIndex_Internal = -1; 
 		
     self.elementPadding       = 0;
@@ -163,17 +137,20 @@
 
 		self.scrollEdgeViewPadding = 0.0;
 		self.autoresizesSubviews = YES;
+    
+    self.textColor = [UIColor blackColor];
+    self.selectedTextColor = [UIColor whiteColor];
+    
 	}
 	return self;
 }
 
 - (NSUInteger) numberOfElements {
   NSUInteger result = 0;
-  SEL dataSourceCall = @selector(numberOfElementsInHorizontalPickerView:);
+  SEL dataSourceCall = @selector(numberOfElementsInPickerView:);
 	if (self.dataSource && [self.dataSource respondsToSelector:dataSourceCall]) {
-		result = [self.dataSource numberOfElementsInHorizontalPickerView:self];
+		result = [self.dataSource numberOfElementsInPickerView:self];
 	} 
-//  NSLog(@"number of elements = %d", result);
   return result;
 }
 
@@ -184,17 +161,44 @@
 - (NSArray *) elementWidths {
   if (_elementWidths == nil) {
     NSUInteger numElements = self.numberOfElements;
-    SEL delegateCall = @selector(horizontalPickerView:widthForElementAtIndex:);
+    SEL delegateCall = @selector(pickerView:widthForIndex:);
     NSMutableArray *array = [NSMutableArray arrayWithCapacity:numElements];
     for (NSUInteger index = 0; index < numElements; index++) {
       if (self.delegate && [self.delegate respondsToSelector:delegateCall]) {
-        CGFloat width = [self.delegate horizontalPickerView:self widthForElementAtIndex:index];
+        CGFloat width = [self.delegate pickerView:self widthForIndex:index];
         [array addObject:[NSNumber numberWithDouble:width]];
       }
     }
     _elementWidths = [NSArray arrayWithArray:array];
   }
   return _elementWidths;
+}
+
+- (void) setTitleColor:(UIColor *) aColor forSelectionState:(V8HorizontalPickerSelectionState) aState {
+  BOOL requiresLayout = NO;
+  switch (aState) {
+    case V8HorizontalPickerSelectionStateSelected: {
+      if (self.selectedTextColor != aColor) {
+        self.selectedTextColor = aColor;
+        requiresLayout = YES;
+      }
+      break;
+    }
+    case V8HorizontalPickerSelectionStateUnselected: {
+      if (self.textColor != aColor) {
+        self.textColor = aColor;
+        requiresLayout = YES;
+      }
+      break;
+    }
+
+    default:
+      NSLog(@"unknown state  %d - nothing to do", aState);
+      break;
+  }
+  if (requiresLayout == YES) {
+    [self setNeedsLayout];
+  }
 }
 
 #pragma mark - LayoutSubViews
@@ -209,14 +213,14 @@
 		[self setTotalWidthOfScrollContent];
   }
 
-	SEL titleForElementSelector = @selector(horizontalPickerView:titleForElementAtIndex:);
-	SEL viewForElementSelector  = @selector(horizontalPickerView:viewForElementAtIndex:);
+	SEL titleForElementSelector = @selector(pickerView:titleForIndex:);
+	SEL viewForElementSelector  = @selector(pickerView:viewForIndex:);
 
 	CGRect visibleBounds   = [self bounds];
 	CGRect scaledViewFrame = CGRectZero;
 
 	// remove any subviews that are no longer visible
-	for (UIView<V8HorizontalPickerElementState> *view in [self.scrollView subviews]) {
+	for (UIView<V8HorizontalPickerElementView> *view in [self.scrollView subviews]) {
 		scaledViewFrame = [self.scrollView convertRect:[view frame] toView:self];
 
 		// if the view doesn't intersect, it's not visible, so we can recycle it
@@ -249,10 +253,10 @@
 			if (index < self.numberOfElements) { 
         // make sure we are not requesting data out of range
 				if (self.delegate && [self.delegate respondsToSelector:titleForElementSelector]) {
-					NSString *title = [self.delegate horizontalPickerView:self titleForElementAtIndex:index];
+					NSString *title = [self.delegate pickerView:self titleForIndex:index];
 					view = [self labelForForElementAtIndex:index withTitle:title];
 				} else if (self.delegate && [self.delegate respondsToSelector:viewForElementSelector]) {
-					view = [self.delegate horizontalPickerView:self viewForElementAtIndex:index];
+					view = [self.delegate pickerView:self viewForIndex:index];
 				}
 
 				if (view != nil) {
@@ -428,9 +432,9 @@
 	[self.scrollView setContentOffset:CGPointMake(x, 0) animated:animate];
 
 	// notify delegate of the selected index
-	SEL delegateCall = @selector(horizontalPickerView:didSelectElementAtIndex:);
+	SEL delegateCall = @selector(pickerView:didSelectIndex:);
 	if (self.delegate && [self.delegate respondsToSelector:delegateCall]) {
-		[self.delegate horizontalPickerView:self didSelectElementAtIndex:aIndex];
+		[self.delegate pickerView:self didSelectIndex:aIndex];
 	}
   [self setNeedsLayout];
 }
@@ -530,11 +534,10 @@
 	elementLabel.text            = aTitle;
 	elementLabel.font            = self.elementFont;
 
-//	elementLabel.normalStateColor   = self.textColor;
-//	elementLabel.selectedStateColor = self.selectedTextColor;
+  elementLabel.textColor = self.textColor;
+  elementLabel.highlightedTextColor = self.selectedTextColor;
 
 	// show selected status if this element is the selected one and is currently over selectionPoint
-
 	NSUInteger currentIndex = [self nearestElementToCenter];
 	BOOL isSelected = (self.currentSelectedIndex_Internal == aIndex) && 
   (currentIndex == self.currentSelectedIndex_Internal);

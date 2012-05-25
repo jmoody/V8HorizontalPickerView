@@ -54,9 +54,12 @@ int indexCount;
 //	CGRect tmpFrame = CGRectMake(x, 150.0f, width, 40.0f);
 
 	pickerView = [[V8HorizontalPickerView alloc] initWithFrame:tmpFrame];
+  [pickerView setTitleColor:[UIColor blueColor] forSelectionState:V8HorizontalPickerSelectionStateSelected];
+  [pickerView setTitleColor:[UIColor greenColor] forSelectionState:V8HorizontalPickerSelectionStateUnselected];
+
 	pickerView.backgroundColor   = [UIColor darkGrayColor];
-	pickerView.selectedTextColor = [UIColor whiteColor];
-	pickerView.textColor   = [UIColor grayColor];
+  
+   
 	pickerView.delegate    = self;
 	pickerView.dataSource  = self;
 	pickerView.elementFont = [UIFont boldSystemFontOfSize:14.0f];
@@ -71,11 +74,9 @@ int indexCount;
   tmpFrame = CGRectMake(0, 0, 320, 50);
   V8HorizontalPickerView *pv = [[V8HorizontalPickerView alloc] initWithFrame:tmpFrame];
   pv.backgroundColor   = [UIColor darkGrayColor];
-	pv.selectedTextColor = [UIColor whiteColor];
-	pv.textColor   = [UIColor grayColor];
 	pv.delegate    = self;
 	pv.dataSource  = self;
-	pv.elementFont = [UIFont boldSystemFontOfSize:14.0f];
+	pv.elementFont = [UIFont boldSystemFontOfSize:16.0f];
 //  pv.selectionPoint = CGPointMake(60, 0);
   [self.view addSubview:pv];
   
@@ -83,6 +84,8 @@ int indexCount;
 	pv.selectionIndicatorView = indicator;
   pv.indicatorPosition = V8HorizontalPickerIndicatorBottom;
   pv.selectionX = 180;
+  [pickerView setTitleColor:[UIColor blueColor] forSelectionState:V8HorizontalPickerSelectionStateSelected];
+  [pickerView setTitleColor:[UIColor greenColor] forSelectionState:V8HorizontalPickerSelectionStateUnselected];
 
   
 //	pickerView.indicatorPosition = V8HorizontalPickerIndicatorTop; // specify indicator's location
@@ -211,26 +214,26 @@ int indexCount;
 }
 
 #pragma mark - HorizontalPickerView DataSource Methods
-- (NSInteger)numberOfElementsInHorizontalPickerView:(V8HorizontalPickerView *)picker {
+- (NSInteger)numberOfElementsInPickerView:(V8HorizontalPickerView *)picker {
 	return [titleArray count];
 }
 
 #pragma mark - HorizontalPickerView Delegate Methods
-- (NSString *)horizontalPickerView:(V8HorizontalPickerView *)picker titleForElementAtIndex:(NSInteger)index {
-	return [titleArray objectAtIndex:index];
+- (NSString *) pickerView:(V8HorizontalPickerView *)aPicker titleForIndex:(NSUInteger)aIndex {
+	return [titleArray objectAtIndex:aIndex];
 }
 
-- (CGFloat) horizontalPickerView:(V8HorizontalPickerView *)picker widthForElementAtIndex:(NSInteger)index {
+- (CGFloat) pickerView:(V8HorizontalPickerView *)picker widthForIndex:(NSUInteger) aIndex {
 	CGSize constrainedSize = CGSizeMake(MAXFLOAT, MAXFLOAT);
-	NSString *text = [titleArray objectAtIndex:index];
-	CGSize textSize = [text sizeWithFont:[UIFont boldSystemFontOfSize:14.0f]
+	NSString *text = [titleArray objectAtIndex:aIndex];
+	CGSize textSize = [text sizeWithFont:[UIFont boldSystemFontOfSize:16.0f]
 					   constrainedToSize:constrainedSize
 						   lineBreakMode:UILineBreakModeWordWrap];
 	return textSize.width + 40.0f; // 20px padding on each side
 }
 
-- (void)horizontalPickerView:(V8HorizontalPickerView *)picker didSelectElementAtIndex:(NSInteger)index {
-	self.infoLabel.text = [NSString stringWithFormat:@"Selected index %d", index];
+- (void) pickerView:(V8HorizontalPickerView *)aPicker didSelectIndex:(NSUInteger)aIndex {
+  self.infoLabel.text = [NSString stringWithFormat:@"Selected index %d", aIndex];
 }
 
 @end

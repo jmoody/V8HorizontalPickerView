@@ -9,7 +9,7 @@
 
 // ------------------------------------------------------------------
 // V8HorizontalPickerElementState Protocol
-@protocol V8HorizontalPickerElementState <NSObject>
+@protocol V8HorizontalPickerElementView <NSObject>
 
 @required
 // element views should know how display themselves based on selected status
@@ -22,7 +22,7 @@
 
 @required
 // data source is responsible for reporting how many elements there are
-- (NSInteger) numberOfElementsInHorizontalPickerView:(V8HorizontalPickerView *) aPicker;
+- (NSInteger) numberOfElementsInPickerView:(V8HorizontalPickerView *) aPicker;
 @end
 
 
@@ -33,20 +33,20 @@
 
 @required
 // delegate is responsible for reporting the size of each element
-- (CGFloat) horizontalPickerView:(V8HorizontalPickerView *)picker
-          widthForElementAtIndex:(NSInteger) aIndex;
+- (CGFloat) pickerView:(V8HorizontalPickerView *)picker 
+         widthForIndex:(NSUInteger) aIndex;
 
 @optional
 // delegate callback to notify delegate selected element has changed
-- (void) horizontalPickerView:(V8HorizontalPickerView *) aPicker 
-      didSelectElementAtIndex:(NSInteger) aIndex;
+- (void) pickerView:(V8HorizontalPickerView *) aPicker 
+     didSelectIndex:(NSUInteger) aIndex;
 
 // one of these two methods must be defined
-- (NSString *) horizontalPickerView:(V8HorizontalPickerView *) aPicker 
-             titleForElementAtIndex:(NSInteger) aIndex;
+- (NSString *) pickerView:(V8HorizontalPickerView *) aPicker 
+            titleForIndex:(NSUInteger) aIndex;
 
-- (UIView <V8HorizontalPickerElementState> *)  horizontalPickerView:(V8HorizontalPickerView *) aPicker 
-                                              viewForElementAtIndex:(NSInteger) aIndex;
+- (UIView <V8HorizontalPickerElementView> *) pickerView:(V8HorizontalPickerView *) aPicker 
+                                           viewForIndex:(NSUInteger) aIndex;
 
 
 
