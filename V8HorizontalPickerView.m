@@ -54,8 +54,6 @@
 @property (nonatomic, strong) UIColor *textColor;
 @property (nonatomic, strong) UIColor *selectedTextColor;
 
-
-
 - (void) updateWidthOfScrollContent;
 - (void) updateScrollContentInset;
 
@@ -465,6 +463,7 @@
 
 	// notify delegate of the selected index
 	SEL delegateCall = @selector(pickerView:didSelectIndex:);
+
 	if (self.delegate && [self.delegate respondsToSelector:delegateCall]) {
 		[self.delegate pickerView:self didSelectIndex:aIndex];
 	}
