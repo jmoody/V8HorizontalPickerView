@@ -235,8 +235,8 @@
       if ([view conformsToProtocol:@protocol(V8HorizontalPickerElementView)]) {
         UIView<V8HorizontalPickerElementView> *elmView;
         elmView =  (UIView<V8HorizontalPickerElementView> *) view;
-        BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
-        BOOL isOverSelectionPoint = ([self indexOfElementNearestToCenter] == self.currentSelectedIndex_Internal);
+        BOOL isSelected = (self.currentSelectedIndex_Internal == (NSInteger)[self indexForElement:view]);
+        BOOL isOverSelectionPoint = ((NSInteger)[self indexOfElementNearestToCenter] == self.currentSelectedIndex_Internal);
         [elmView setSelectedState:(isSelected && isOverSelectionPoint)];
       }
     }
@@ -270,8 +270,8 @@
           if ([view conformsToProtocol:@protocol(V8HorizontalPickerElementView)]) {
             UIView<V8HorizontalPickerElementView> *elmView;
             elmView =  (UIView<V8HorizontalPickerElementView> *) view;
-            BOOL isSelected = (self.currentSelectedIndex_Internal == [self indexForElement:view]);
-            BOOL isOverSelectionPoint = ([self indexOfElementNearestToCenter] == self.currentSelectedIndex_Internal);
+            BOOL isSelected = (self.currentSelectedIndex_Internal == (NSInteger)[self indexForElement:view]);
+            BOOL isOverSelectionPoint = ((NSInteger)[self indexOfElementNearestToCenter] == self.currentSelectedIndex_Internal);
             [elmView setSelectedState:(isSelected && isOverSelectionPoint)];
           }
 				}
@@ -310,7 +310,7 @@
       [self centerOfElementAtIndex:self.currentSelectedIndex_Internal] != [self currentCenter].x) {
 		if (adjustWhenFinished) {
      [self scrollToIndex:self.currentSelectedIndex_Internal animated:NO];
-		} else if (self.numberOfElements <= self.currentSelectedIndex_Internal) {
+		} else if ((NSInteger)self.numberOfElements <= self.currentSelectedIndex_Internal) {
 			// if currentSelectedIndex no longer exists, select what is currently centered
 			self.currentSelectedIndex_Internal = [self indexOfElementNearestToCenter];
 			[self scrollToIndex:self.currentSelectedIndex_Internal animated:NO];
@@ -635,7 +635,7 @@
 
 	offset += [self leftScrollEdgeWidth];
 
-	for (int i = 0; i < aIndex && i < [self.elementWidths count]; i++) {
+	for (NSUInteger i = 0; i < aIndex && i < [self.elementWidths count]; i++) {
 		offset += [[self.elementWidths objectAtIndex:i] intValue];
 	}
 	return offset;
